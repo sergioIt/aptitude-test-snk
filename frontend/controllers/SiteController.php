@@ -116,7 +116,7 @@ class SiteController extends Controller
     public function actionContact()
     {
         $model = new ContactForm();
-        $this->layout = 'custom';
+       // $this->layout = 'custom';
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             if ($model->sendEmail(Yii::$app->params['adminEmail'])) {

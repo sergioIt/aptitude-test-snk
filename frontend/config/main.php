@@ -11,7 +11,7 @@ return [
     'language' => 'ru',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
-    'defaultRoute' => 'site/contact',
+    'defaultRoute' => 'test/begin',
     'controllerNamespace' => 'frontend\controllers',
     'components' => [
         'user' => [
