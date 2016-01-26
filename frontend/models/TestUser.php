@@ -8,6 +8,7 @@
 
 namespace app\models;
 
+use Faker\Provider\cs_CZ\DateTime;
 use Yii;
 
 /**
@@ -25,16 +26,29 @@ use Yii;
 class TestUser extends \yii\db\ActiveRecord
 {
     const DATE_DB_FORMAT_FOR_VALIDATOR = 'yyyy-MM-dd HH:mm:ss';
+    /**
+     * формат даты в базе данных
+     */
+    const DATE_DB_FORMAT = 'Y-m-d';
 
     /**
-     * ещё не прошёл тест, но уже начал
+     * статус пользователя: зарегистрировался, перешёл к тесту
      */
-    const STATUS_NOT_FINISHED = 0;
+    const STATUS_DEFAULT = 0;
     /**
-     * прошёл тест
+     * статус пользователя: ответил на часть вопросов
      */
-    const STATUS_FINISHED = 1;
+    const STATUS_NOT_FINISHED = 1;
 
+    /**
+     * статус пользователя: ответил на все вопросы
+     */
+    const STATUS_FINISHED = 2;
+
+    /**
+     * минимально допустимый возраст кандидата
+     */
+    const MINIMUM_AGE = 18;
     /**
      * @inheritdoc
      */
@@ -50,11 +64,10 @@ class TestUser extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'surname', 'patronymic', 'phone', 'date_of_birth' ], 'required'],
-            //[['date_of_birth', 'created'], 'safe'],
             [['status'], 'integer'],
             [['name'], 'string', 'max' => 100],
             [['surname', 'patronymic'], 'string', 'max' => 255],
-            [['phone'], 'string', 'max' => 12],
+            [['phone'], 'string', 'max' => 16],
             [['phone'], 'unique'],
             [   'created',
                 'date',
@@ -63,17 +76,49 @@ class TestUser extends \yii\db\ActiveRecord
             [   'date_of_birth',
                 'date',
                 'format' => 'yyyy-MM-dd'
-            ]
+            ],
+            ['date_of_birth','isNotTooYoung']
+
 
         ];
     }
 
-    public function beforeSave(){
+    /**
+     * Проверяет по дате рождения, не слишком ли молод кандидат
+     * @param $attribute
+     */
+    public function isNotTooYoung($attribute){
 
-        $date = (new \DateTime())->format('Y-m-d H:i:s');
-        var_dump($date);
-        $this->created = $date;
+        $now = new \DateTime();
+        $dateOfBirth = \DateTime::createFromFormat(self::DATE_DB_FORMAT, $this->$attribute);
 
+        $diff = $now->diff($dateOfBirth);
+
+        if($diff->format('%y') < self::MINIMUM_AGE){
+
+            $this->addError($attribute, 'Слишком молодой');
+        }
+    }
+
+    /**
+     * Очищает номер, оставляя только цифры
+     * @param $phone
+     * @return mixed
+     */
+    private function clearPhone($phone){
+        return preg_replace('/\D/', '', $phone);
+    }
+
+    /**
+     * Перед сохранением модели в базу:
+     * добавляем дату создания и оцищаем телефон
+     *
+     * @return bool
+     */
+    public function beforeSave()
+    {
+        $this->created = (new \DateTime())->format('Y-m-d H:i:s');
+        $this->phone = self::clearPhone($this->phone);
         return true;
     }
 

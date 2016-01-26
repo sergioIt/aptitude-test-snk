@@ -18,15 +18,15 @@ class TestController extends \yii\web\Controller
 
         if($model->load(\Yii::$app->request->post()) && $model->save()){
 
-            
-            // @todo создание нового теста перед редиректом на него
+           $this->layout = 'custom';
+            // @todo создание нового теста перед редиректом н
             $this->redirect('test/process');
         }
         else{
 
 
         }
-
+        $this->layout = 'custom';
         return $this->render('begin',['model' => $model]);
     }
 
