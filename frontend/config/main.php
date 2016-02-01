@@ -18,6 +18,10 @@ return [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
         ],
+        'session' =>  [
+                // session timeout for test process (5 hours)
+                'timeout'=>5*3600,
+        ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [

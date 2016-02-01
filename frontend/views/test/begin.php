@@ -9,7 +9,7 @@
  */
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
-$this->registerCssFile('css/test');
+$this->registerCssFile('css/test.css');
 $this->registerJsFile('plugins/inputmask/jquery.inputmask.bundle.js',
     [ 'depends' => ['\yii\web\JqueryAsset'],
      'position' => \yii\web\View::POS_END, ]
@@ -51,7 +51,8 @@ $this->title = 'Начало теста';
                 'buttonImageOnly' => false,
                 'buttonText' => 'Выберите дату',
 
-            ]])/*->textInput(['value' => '1998-12-02'])*/;
+            ],
+            ])/*->textInput(['value' => '1998-12-02'])*/;
             ?>
             <div class="form-group">
                 <?= Html::submitButton('Начать тест', ['class' => 'btn btn-lg btn-primary']) ?>
