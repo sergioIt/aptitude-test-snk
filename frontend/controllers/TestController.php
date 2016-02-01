@@ -89,8 +89,9 @@ class TestController extends \yii\web\Controller
 
 
         if (!isset($testId) || !isset($userId)) {
-            $this->redirect('begin');
+            $this->redirect('test/begin');
         }
+
         $question = TestQuestions::findOne(['id' => $questionId]);
 
         if($question){
@@ -167,6 +168,7 @@ class TestController extends \yii\web\Controller
                 }
                 //иначе рендерим концовку
                 else {
+                    // @todo проверяем, был ли отказ при последнем вопросе
 
                     return $this->renderAjax('finish', []);
 

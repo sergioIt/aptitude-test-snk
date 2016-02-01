@@ -10,11 +10,12 @@
 
 <div class="jumbotron">
     Спасибо!
+    <?= \yii\helpers\Html::a('в начало',$url = \yii\helpers\Url::to(['test/begin'],['class' => 'btn btn-success'])); ?>
 </div>
 
 <? //@todo если человек попросил снять его кандидатуру в последнем вопросе, то дополнительно рендерим ещё формчоку для причины отказа
-if($denied){
+/*if($denied){
     \yii\helpers\Html::textarea('deny_reason');
-}
+}*/
 
-    ?>
+?>

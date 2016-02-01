@@ -121,7 +121,10 @@ class TestQuestions extends \yii\db\ActiveRecord
      */
     public function getAnswers()
     {
-        return $this->hasMany(TestAnswers::className(), ['question_id' => 'id']);
+
+     //  return $this->hasMany(TestAnswers::className(), ['question_id' => 'id']);
+
+        return TestAnswers::find()->where(['question_id' => $this->id])->orderBy('id asc')->all();
     }
 
     /**
@@ -137,7 +140,7 @@ class TestQuestions extends \yii\db\ActiveRecord
             // предполагается что максимальный балл шкалы может быть либо 10 либо 100
             // поэтому, разделив его на 10, получим шаг либо 1 либо 10
             $scaleStep = $this->scale/10;
-            for($i = $scaleStep; $i <= $this->scale; $i += $scaleStep){
+            for($i = 0; $i <= $this->scale; $i += $scaleStep){
                 $scaleData[] = $i;
             }
             $this->scaleData = $scaleData;

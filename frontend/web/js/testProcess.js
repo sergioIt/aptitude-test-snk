@@ -53,7 +53,7 @@ Aptitude.Process.processAnswer = function () {
             if(params['checkbox_list'] > 0){
                 errType = 'chooseMultiple';
             }
-            //console.log('not validated');
+            console.log('not validated');
             Aptitude.Process.showFlashError(errType);
             Aptitude.Process.disableNexButton();
 
@@ -121,14 +121,13 @@ Aptitude.Process.validateAnswer = function () {
         //собираем все ответы, проверям выбран ли хотя бы один
 
         // если вопрос подразумевает ответ по шкале
+        // то проерять нечего, считаем что любой ответ корректный
         if (params['scale'] > 0) {
 
             //console.log('scale param' + params['scale']);
-            var select = $('#select');
-            if (select.val() > 0) {
+            //var select = $('#select');
 
                 return true;
-            }
 
         }
 

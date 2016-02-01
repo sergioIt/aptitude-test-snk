@@ -45,7 +45,7 @@ $this->registerJsFile('js/testProcess.js',
     <? if (isset($question->scale)) {
         ?>
         <div class="col-md-1">
-            <?= Html::dropDownList('scale', '1', $question->scaleData,
+            <?= Html::dropDownList('scale', '0', $question->scaleData,
                 ['id' => 'select','class' => 'form-control']); ?>
 
         </div>
@@ -53,16 +53,19 @@ $this->registerJsFile('js/testProcess.js',
     } ?>
     <?
     if (isset($question->answers)) {
-
+        /*var_dump($question->answers);*/
         foreach ($question->answers as $answer) {     ?>
             <div class="<?=$question->listItemType?>">
                 <label>
                     <input class="answer" type="<?= $question->listItemType?>" name="answer" value="<?= $answer->id ?>"
                            data-custom="<? if (($answer->custom == 1)) {
                                echo '1';
-                           } ?>"
+                           } ?>" data-need_confirm="<? if (($answer->need_confirm == 1)) {
+                        echo '1';
+                    } ?>"
                         >
                     <?= $answer->text ?>
+                    <?= $answer->id ?>
 
                     <? //если вариант ответа подразумевает свой вариант, то генерим ещё текстовое поле
                     if (($answer->custom == 1)) {

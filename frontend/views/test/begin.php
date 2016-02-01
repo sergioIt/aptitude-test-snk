@@ -9,7 +9,7 @@
  */
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
-$this->registerCssFile('css/test.css');
+$this->registerCssFile('/css/test.css');
 $this->registerJsFile('plugins/inputmask/jquery.inputmask.bundle.js',
     [ 'depends' => ['\yii\web\JqueryAsset'],
      'position' => \yii\web\View::POS_END, ]
