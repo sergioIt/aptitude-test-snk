@@ -9,14 +9,15 @@
  */
 
 use yii\helpers\Html;
+//use yii\bootstrap\Modal;
 
 $this->title = 'Тестирование';
-
+$this->registerCssFile('/css/question.css');
 $this->registerJsFile('js/testProcess.js',
     ['depends' => ['\yii\web\JqueryAsset'],
         'position' => \yii\web\View::POS_END,]
 );
-//var_dump($question);
+
 ?>
 <h2>Вопрос <?= $question->id ?> из <?= $questionsCount ?> </h2>
 <?= yii\bootstrap\Progress::widget(['percent' => $percent, 'label' => '']) ?>
@@ -65,7 +66,6 @@ $this->registerJsFile('js/testProcess.js',
                     } ?>"
                         >
                     <?= $answer->text ?>
-                    <?= $answer->id ?>
 
                     <? //если вариант ответа подразумевает свой вариант, то генерим ещё текстовое поле
                     if (($answer->custom == 1)) {

@@ -13,6 +13,7 @@ $(document).ready(function () {
     Aptitude.Process.init();
 
     Aptitude.Process.processAnswer();
+    Aptitude.Process.processAdditionalQuestion();
 
 });
 
@@ -38,9 +39,27 @@ Aptitude.Process.processAnswer = function () {
     $(document).on("click", '.getNext', function () {
 
         if (Aptitude.Process.validateAnswer()) {
-            //console.log('validated');
 
-            Aptitude.Process.saveAnswer();
+
+            var saveAnswer = false;
+
+            var checkedRadio = $('input.answer:checked');
+
+            if(checkedRadio.data('need_confirm') > 0){
+                if(confirm('Вы уверены, что хотите вбырать имеено этот вариант?'))
+                {
+                    saveAnswer = true;
+                }
+                else saveAnswer = false;
+
+            }
+            else saveAnswer = true;
+
+
+            if(saveAnswer){
+                Aptitude.Process.saveAnswer();
+            }
+
 
         }
         else {
@@ -66,6 +85,24 @@ Aptitude.Process.processAnswer = function () {
     answerArea.on('click', function () {
 
         Aptitude.Process.init();
+    });
+
+};
+/**
+ * Обрабатывает сохранение ответа на доп. вопрос (в конце)
+ */
+Aptitude.Process.processAdditionalQuestion = function(){
+
+    $(document).on("click", '#btn_send_reason', function () {
+
+        Aptitude.Process.saveAdditionalAnswer();
+        var data = {
+            test_id: $(document).find('#questionBlock').data('test_id'),
+                    reason: $('#reason_deny').val()
+        };
+
+
+
     });
 
 };
@@ -116,8 +153,6 @@ Aptitude.Process.validateAnswer = function () {
     var selectedCount = 0;
     // если ответ на вопрос обязателен, делаем проверку, выбран ли хотя бы один вариант
     if (params['required'] == 1) {
-        //console.log('check required');
-
         //собираем все ответы, проверям выбран ли хотя бы один
 
         // если вопрос подразумевает ответ по шкале
@@ -145,11 +180,11 @@ Aptitude.Process.validateAnswer = function () {
 
             });
 
-            //console.log('selected count: ' + selectedCount);
-
             if(params['radio_list'] > 0 && selectedCount > 0){
                 return true;
             }
+           // else return false;
+
 
             if(params['checkbox_list'] > 0 && selectedCount <= params['max_options'] && selectedCount >= params['min_options']){
                 return true;
@@ -159,13 +194,28 @@ Aptitude.Process.validateAnswer = function () {
 
 
     }
-    else {
-
-        return true;
-    }
+    else  return true;
 
     return false;
 };
+
+/**
+ * Проводит процесс подтверждения варианта ответа на вопрос, если вариант этого требует
+ */
+/*Aptitude.Process.processConfirmation = function(){
+    var checkedRadio = $('input.answer:checked');
+    console.log('checked radio: ' + checkedRadio);
+
+    if(checkedRadio.data('need_confirm') > 0){
+        if(confirm('Вы уверены, что хотите вбырать имеено этот вариант?'))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    return false;
+};*/
 /**
  * Извлекает параметры вопроса из DOM
  *
@@ -255,6 +305,13 @@ Aptitude.Process.getAnswerData = function () {
 
 };
 
+Aptitude.Process.getAdditionalAnswerData = function(){
+
+return  {
+        test_id: $(document).find('#questionBlock').data('test_id'),
+        reason: $('#reason_deny').val()
+    };
+};
 /**
  * сохраняет результат ответа на вопрос на сервере (ajax)
  */
@@ -275,4 +332,22 @@ Aptitude.Process.saveAnswer = function () {
         }
     });
 
+};
+
+Aptitude.Process.saveAdditionalAnswer = function(){
+
+    var data = Aptitude.Process.getAdditionalAnswerData();
+
+    $.ajax({
+        type: "POST",
+        url: 'saveadditional',
+        data: data,
+        success: function (response) {
+            // рендерим следующий вопрос
+             console.log(response);
+            $('#questionBlock').hide();
+            $('#additionalForm').hide();
+
+        }
+    });
 };

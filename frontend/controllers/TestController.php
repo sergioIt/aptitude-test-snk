@@ -16,6 +16,7 @@ use Yii;
 use yii\base\Exception;
 use Yii\web\session;
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 class TestController extends \yii\web\Controller
 {
@@ -40,7 +41,7 @@ class TestController extends \yii\web\Controller
                 $session['question_id'] = 1;
                 $session['question_count'] = TestQuestions::find()->count();
 
-                $this->redirect('test/process');
+                $this->redirect(Url::to(['test/process']));
             } else {
                 throw new Exception('error creating new test');
             }
@@ -88,8 +89,17 @@ class TestController extends \yii\web\Controller
         $questionId = Yii::$app->session->get('question_id');
 
 
+        $q = Yii::$app->request->get('q_id');
+
+        if(isset($q))
+        {
+            $questionId = $q;
+        }
+
         if (!isset($testId) || !isset($userId)) {
-            $this->redirect('test/begin');
+
+            $beginActionUrl = Yii::$app->urlManager->createUrl('test/begin');
+            $this->redirect($beginActionUrl);
         }
 
         $question = TestQuestions::findOne(['id' => $questionId]);
@@ -108,7 +118,7 @@ class TestController extends \yii\web\Controller
                 ]);
         }
         else{
-            $this->redirect('begin');
+            $this->redirect(Url::to(['test/begin']));
 
         }
         return true;
@@ -134,7 +144,7 @@ class TestController extends \yii\web\Controller
         if (Yii::$app->request->isAjax) {
 
             $data = Yii::$app->request->post();
-
+          //  var_dump($data);
            if (TestResult::saveBatch($data)) {
 
                 $session = Yii::$app->session;
@@ -150,8 +160,7 @@ class TestController extends \yii\web\Controller
                 Test::updateTest($testId);
 
                 // находим следующий вопрос
-
-                //@todo тут лучше не повторять код, а перебросить на process, где обрабатывать ajax-запрос
+               //@todo тут лучше не повторять код, а перебросить на process, где обрабатывать ajax-запрос
                 $question = TestQuestions::findOne(['id' => $nextQuestionId]);
 
                 // если вопрос нашёлся, то рендерим его
@@ -168,10 +177,12 @@ class TestController extends \yii\web\Controller
                 }
                 //иначе рендерим концовку
                 else {
-                    // @todo проверяем, был ли отказ при последнем вопросе
-
-                    return $this->renderAjax('finish', []);
-
+                    return $this->renderAjax('finish',
+                        [
+                            'additionalQuestion' =>  Test::ifTestIsFault($testId),
+                            'testId' => $testId,
+                            'originUrl' => Url::to(['/'])
+                        ]);
                 }
 
             } else {
@@ -184,5 +195,22 @@ class TestController extends \yii\web\Controller
         }
 
         return true;
+    }
+
+    public function actionSaveadditional()
+    {
+        if (Yii::$app->request->isAjax) {
+
+            $data = Yii::$app->request->post();
+            //  var_dump($data);
+            if (Test::saveDenyReason($data)) {
+
+            }
+        }
+        else{
+            echo 'not ajax';
+        }
+
+
     }
 }
