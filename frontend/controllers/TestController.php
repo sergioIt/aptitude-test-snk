@@ -89,12 +89,14 @@ class TestController extends \yii\web\Controller
         $questionId = Yii::$app->session->get('question_id');
 
 
-        $q = Yii::$app->request->get('q_id');
+     // это для быстрого перехода к нужному вопросу
+     // используется только при локальном дебаге, в продакшене быть не долждно, т.к. нарушается логика
 
+/*          $q = Yii::$app->request->get('q_id');
         if(isset($q))
         {
             $questionId = $q;
-        }
+        }*/
 
         if (!isset($testId) || !isset($userId)) {
 
@@ -144,7 +146,7 @@ class TestController extends \yii\web\Controller
         if (Yii::$app->request->isAjax) {
 
             $data = Yii::$app->request->post();
-          //  var_dump($data);
+
            if (TestResult::saveBatch($data)) {
 
                 $session = Yii::$app->session;
@@ -187,7 +189,6 @@ class TestController extends \yii\web\Controller
 
             } else {
                 echo 'error: no save';
-                //var_dump(TestResult:);
             }
 
         } else {
@@ -197,20 +198,20 @@ class TestController extends \yii\web\Controller
         return true;
     }
 
+    /**
+     * Принимает ajax-запрос на сохранение ответа на доп. вопрос
+     * и сохраняет ответ в модели теста
+     */
     public function actionSaveadditional()
     {
         if (Yii::$app->request->isAjax) {
 
             $data = Yii::$app->request->post();
-            //  var_dump($data);
-            if (Test::saveDenyReason($data)) {
 
-            }
+            Test::saveDenyReason($data);
         }
         else{
             echo 'not ajax';
         }
-
-
     }
 }

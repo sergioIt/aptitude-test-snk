@@ -309,7 +309,7 @@ Aptitude.Process.getAdditionalAnswerData = function(){
 
 return  {
         test_id: $(document).find('#questionBlock').data('test_id'),
-        reason: $('#reason_deny').val()
+        deny_reason: $('#deny_reason').val()
     };
 };
 /**

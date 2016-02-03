@@ -118,6 +118,8 @@ class Test extends \yii\db\ActiveRecord
                 'date',
                 'format' => self::DATE_DB_FORMAT_FOR_VALIDATOR
             ],
+            ['deny_reason', 'string', 'max' => 500],
+            ['deny_reason', 'trim']
 
         ];
     }
@@ -133,6 +135,7 @@ class Test extends \yii\db\ActiveRecord
             'created' => 'Создан',
             'updated' => 'Изменён',
             'status' => 'Статус',
+            'deny_reason' => 'Причина отказа',
         ];
     }
 
@@ -197,6 +200,8 @@ class Test extends \yii\db\ActiveRecord
     }
 
     /**
+     * Обновляет данные теста:
+     * сколько баллов набрано
      * @param $testId
      */
     public static function updateTest($testId)
@@ -241,9 +246,9 @@ class Test extends \yii\db\ActiveRecord
                 $test->status = self::STATUS_FAULT;
             }
             // обработка проверочных вопросов
-         /*   $test->processCheckGroups(1);
+            $test->processCheckGroups(1);
             $test->processCheckGroups(2);
-            $test->processCheckGroups(3);*/
+            $test->processCheckGroups(3);
 
         }
 
@@ -343,9 +348,22 @@ class Test extends \yii\db\ActiveRecord
 
     }
 
+    /**
+     * Сохраняет причину отказа после прохождения теста
+     *
+     * @param $data
+     * @return bool
+     */
     public static function saveDenyReason($data){
 
-        var_dump($data);
+        $test = self::findOne(['id' => $data['test_id']]);
+
+        if($test){
+           $test->deny_reason =   $data['deny_reason'];
+            return $test->save();
+        }
+
+        return false;
     }
 
 
