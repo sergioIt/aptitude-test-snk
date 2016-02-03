@@ -61,6 +61,30 @@ class Test extends \yii\db\ActiveRecord
      */
     const STATUS_CHECK_GROUP_FALSE = 2;
 
+    const MIN_POSSIBLE_SCORE = -76;
+
+    const MAX_POSSIBLE_SCORE = 84;
+
+    // типы людей исходя из общего балла
+    const SCORE_TYPE_BAD = 'bad';
+    const SCORE_TYPE_DOUBTER = 'doubter';
+    const SCORE_TYPE_INCLINED_TO_DOUBT = 'inclined_to_doubt';
+    const SCORE_TYPE_GOOD = 'good';
+    const SCORE_TYPE_CRAFTY = 'crafty';
+
+    /**
+     * массив соответствий границ, в которые попал общий балл,
+     * и типов людей
+     *
+     * @var array
+     */
+    private  static  $scoreTypes = [
+        self::SCORE_TYPE_BAD => ['min' => self::MIN_POSSIBLE_SCORE, 'max' => -22],
+        self::SCORE_TYPE_DOUBTER => ['min' => -23, 'max' => 32],
+        self::SCORE_TYPE_INCLINED_TO_DOUBT => ['min' => 33, 'max' => 40],
+        self::SCORE_TYPE_GOOD  => ['min' => 41, 'max' => 80],
+        self::SCORE_TYPE_CRAFTY => ['min' => 81, 'max' => self::MAX_POSSIBLE_SCORE],
+    ];
 
     /**
      * массив соответствий значения шкалы и оценки овтета
@@ -119,7 +143,8 @@ class Test extends \yii\db\ActiveRecord
                 'format' => self::DATE_DB_FORMAT_FOR_VALIDATOR
             ],
             ['deny_reason', 'string', 'max' => 500],
-            ['deny_reason', 'trim']
+            ['deny_reason', 'trim'],
+            ['score', 'in', 'range' => [self::MIN_POSSIBLE_SCORE,self::MAX_POSSIBLE_SCORE]]
 
         ];
     }
@@ -360,11 +385,125 @@ class Test extends \yii\db\ActiveRecord
         $test = self::findOne(['id' => $data['test_id']]);
 
         if($test){
-           $test->deny_reason =   $data['deny_reason'];
+           $test->deny_reason = $data['deny_reason'];
             return $test->save();
         }
 
         return false;
+    }
+
+    /**
+     *  Получает рекомендацию, исходя из общего балла
+     *
+     * @param $testId
+     * @return bool
+     */
+    public static function getScoreType($testId){
+
+        $test = self::findOne(['id' =>$testId]);
+
+        if($test && $test->status >= $test::STATUS_FINISHED){
+
+            // проверка на то, что общий балл попал в какой-то дапазон типов
+            foreach(self::$scoreTypes as $type=>$range){
+
+                if($range['min'] <= $test->score && $test->score <= $range['max']){
+
+                   return $type;
+
+                }
+
+            }
+
+        }
+
+        return false;
+    }
+
+    /**
+     * Возвращает массив соответствий статусов теста
+     * и данных для их рендеринга в списке тестов
+     * @return array
+     */
+    public static function getTestStatusLabels(){
+
+        return   [ self::STATUS_DEFAULT => ['class' => 'default', 'text' => 'только начат'],
+            self::STATUS_NOT_FINISHED => ['class' => 'warning', 'text' => 'не закончен'],
+            self::STATUS_FINISHED => ['class' => 'success', 'text' => 'закончен'],
+            self::STATUS_FAULT => ['class' => 'danger', 'text' => 'закончен с отказом']
+            ];
+    }
+
+    /**
+     * Возвращает массив соответствий статусов результата анализа проверочных групп вопросов
+     * и данных для их рендеринга в списке тестов
+     * @pram $checkGroupId номер проверочной группы вопросов
+     * @return array|bool
+     */
+    public static function getTestCheckResultsLabels($checkGroupId){
+
+        // в зависимости от номера проверочной группы возвращаем массив соответствий
+        switch($checkGroupId){
+
+            case 1:
+            return [
+                self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок','title' => 'нет подозрений на ложь'],
+                self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
+            ];
+            case 2:
+            return [
+                self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок','title' => 'нет подозрений на ложь'],
+                self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
+            ];
+            case 3:
+            return [
+                self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок','title' => 'нет подозрений на проблемы с неопредёлнностью'],
+                self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'неопределённость', 'title' => 'подозрение на проблемы с неопредёлнностью'],
+            ];
+
+
+        }
+        // если номер группы другой либо не пришёл - возвращаем ложь
+          return false;
+    }
+
+    /**
+     * Возвращает массив соответствий типа человека и рекомендаций по результатам теста
+     * и данных для рендеринга этип типов и рекомендаций в списке
+     *
+     *
+     */
+    public static function getRecommendationsLabels(){
+
+        return [
+
+            self::SCORE_TYPE_BAD => ['class' => 'danger', 'text' => 'не подходит','title' => 'Рекомендация: отказать в рассмотрении данной кандидатуры на
+место'],
+            self::SCORE_TYPE_DOUBTER => ['class' => 'warning', 'text' => 'сомневающийся', 'title' => 'Данный кандидат, похоже, еще не
+совсем определился, нужна ему эта работа или нет. Рекомендация к более
+пристальному и внимательному разговору с данным кандидатом по телефону
+или во время очного интервью. Более внимательное отношение к деталям
+предстоящей работы, описание всех сложностей, с которыми придется
+столкнуться в процессе работы сварщиком. Несколько раз “в упор” спросить о
+готовности, поговорить об ответственности сторон и дать время подумать,
+взвесить решение”. При прочих равных условиях отдать предпочтение
+кандидату, набравшему больше баллов.
+
+'],
+            self::SCORE_TYPE_INCLINED_TO_DOUBT => ['class' => 'warning', 'text' => 'скорее сомневающийся','title' => 'Рекомендация: Кандидат скорее
+тяготеет к “сомневающемуся типу”, - соответственно, от него можно ожидатьизменения решения в ту или иную сторону в любой момент. Если есть
+возможность, отложите рассмотрение данной кандидатуры на время, не
+принимайте окончательное решение по нему. Рассмотрите более пристально
+кандидатов, набравших более 40 баллов'],
+
+            self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит','title' => 'Рекомендация: данные результаты прохождения теста говорят о
+желании и готовности данного кандидата работать в ЗАО “СНК” на должности
+сварщика термитной сварки'],
+            self::SCORE_TYPE_GOOD => ['class' => 'primary', 'text' => 'хитрый?','title' => 'Рекомендация: Внимание! Кандидат
+набрал максимальное количество баллов по тесту. Стоит приглядеться к нему повнимательнее, возможно, что его хитрость проявится позднее и в других
+ситуациях в работе!'],
+
+        ];
     }
 
 

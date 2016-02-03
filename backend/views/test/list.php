@@ -15,8 +15,8 @@ use yii\bootstrap\Modal;
 <h2>Список тестов </h2>
 
 <?= GridView::widget([
-'dataProvider' => $dataProvider,
-    'columns' =>[
+    'dataProvider' => $dataProvider,
+    'columns' => [
         'id',
         'user' => [
 
@@ -24,131 +24,174 @@ use yii\bootstrap\Modal;
             'value' =>
 
                 function ($model, $key, $index, $column) {
-                    return $model->user->name.' '.$model->user->surname;
+                    return $model->user->name . ' ' . $model->user->surname;
                 }
         ],
         'created',
         'updated',
         'status' =>
-        [
-            'header' => 'Статус',
+            [
+                'header' => 'Статус',
+                'format' => 'raw',
+                'value' =>
+
+                    function ($model, $key, $index, $column) use ($testStatusTypes) {
+
+                        return Html::tag('p', Html::encode($testStatusTypes[$model->status]['text']),
+                            ['class' => 'label label-' . $testStatusTypes[$model->status]['class']
+                            ]);
+                    }
+            ],
+        'score'/* => [
+
             'format' => 'raw',
-            'value' =>
+            'value' => function ($model) {
 
-        function ($model, $key, $index, $column) use ($testStatusTypes){
+                if (isset($model->score)) {
 
-            return Html::tag('p', Html::encode($testStatusTypes[$model->status]['text']),
-            ['class' => 'label label-'.$testStatusTypes[$model->status]['class']
-            ]);
-        }
+                    $html = Html::tag('p', $model->score,
+                        ['class' => 'label label-primary',
+
+                        ]);
+                } else {
+                    $html = Html::tag('p', '---',
+                        ['class' => 'label label-default',
+                            'title' => 'нет оценки'
+                        ]);
+                }
+                return $html;
+            }
+        ]*/,
+        'recommendation' => [
+            'header' => 'Рекоммендация',
+            'format' => 'raw',
+            'value' => function ($model) use ($testScoreRecommendations) {
+
+                $type = $model::getScoreType($model->id);
+                if ($type) {
+
+                    $html = Html::tag('p', Html::encode($testScoreRecommendations[$type]['text']),
+                        ['class' => 'label label-' . $testScoreRecommendations[$type]['class'],
+                            'title' => $testScoreRecommendations[$type]['title']
+
+                        ]);
+                } else {
+                    $html = Html::tag('p', '---',
+                        ['class' => 'label label-default',
+                            'title' => 'проверка не проводилась'
+                        ]);
+                }
+                return $html;
+            }
         ],
-        'score',
         'check_group_1' =>
-        [
-            'header' => 'Проверка 1 <br> (на ложь)',
-            'format' => 'raw',
-            'value' => function($model) use ($testCheckTypes){
+            [
+                'header' => 'Проверка 1 <br> (на ложь)',
+                'format' => 'raw',
+                'value' => function ($model) use ($testCheckResultsLabels) {
 
-                if(isset($model->check_group_1))
-                {
-                    $html = Html::tag('p', Html::encode($testCheckTypes[$model->check_group_1]['text']),
-                        ['class' => 'label label-'.$testCheckTypes[$model->check_group_1]['class'],
-                         'title' => $testCheckTypes[$model->check_group_1]['title']
+                    if (isset($model->check_group_1)) {
+                        $html = Html::tag('p', Html::encode($testCheckResultsLabels[$model->check_group_1]['text']),
+                            ['class' => 'label label-' . $testCheckResultsLabels[$model->check_group_1]['class'],
+                                'title' => $testCheckResultsLabels[$model->check_group_1]['title']
 
-                        ]);
+                            ]);
+                    } else {
+                        $html = Html::tag('p', '--',
+                            ['class' => 'label label-default',
+                                'title' => 'проверка не проводилась'
+
+                            ]);
+                    }
+
+                    return $html;
                 }
-                else{
-                    $html = Html::tag('p', '--',
-                        ['class' => 'label label-default',
-                          'title'   => 'проверка не проводилась'
-
-                        ]);
-                }
-
-                return $html;
-            }
-        ],
+            ],
         'check_group_2' =>
-        [
-            'header' => 'Группа 2 <br> (на ложь)',
-            'format' => 'raw',
-            'value' => function($model) use ($testCheckTypes){
+            [
+                'header' => 'Проверка 2 <br> (на ложь)',
+                'format' => 'raw',
+                'value' => function ($model) use ($testCheckResultsLabels) {
 
-                if(isset($model->check_group_2))
-                {
-                    $html = Html::tag('p', Html::encode($testCheckTypes[$model->check_group_2]['text']),
-                        ['class' => 'label label-'.$testCheckTypes[$model->check_group_2]['class'],
-                            'title' => $testCheckTypes[$model->check_group_2]['title']
-                        ]);
+                    if (isset($model->check_group_2)) {
+                        $html = Html::tag('p', Html::encode($testCheckResultsLabels[$model->check_group_2]['text']),
+                            ['class' => 'label label-' . $testCheckResultsLabels[$model->check_group_2]['class'],
+                                'title' => $testCheckResultsLabels[$model->check_group_2]['title']
+                            ]);
+                    } else {
+                        $html = Html::tag('p', '--',
+                            ['class' => 'label label-default',
+                                'title' => 'проверка не проводилась'
+
+                            ]);
+                    }
+
+                    return $html;
                 }
-                else{
-                    $html = Html::tag('p', '--',
-                        ['class' => 'label label-default',
-                            'title'   => 'проверка не проводилась'
-
-                        ]);
-                }
-
-                return $html;
-            }
-        ],
+            ],
         'check_group_3' =>
-        [
-            'header' => 'Группа 3 <br> (неопределённость)',
+            [
+                'header' => 'Проверка 3 <br> (неопределённость)',
+                'format' => 'raw',
+                'value' => function ($model) use ($testCheckResultsLabelsForGroup3) {
+
+                    if (isset($model->check_group_3)) {
+                        $html = Html::tag('p', Html::encode($testCheckResultsLabelsForGroup3[$model->check_group_3]['text']),
+                            ['class' => 'label label-' . $testCheckResultsLabelsForGroup3[$model->check_group_3]['class'],
+                                'title' => $testCheckResultsLabelsForGroup3[$model->check_group_3]['title']
+                            ]);
+                    } else {
+                        $html = Html::tag('p', '--',
+                            ['class' => 'label label-default',
+                                'title' => 'проверка не проводилась'
+
+                            ]);
+                    }
+
+                    return $html;
+
+                }
+            ],
+        'additional_notify' => [
+            'header' => 'Допполнительные <br> уведомления',
             'format' => 'raw',
-            'value' => function($model) use ($testCheckTypesForGroup3){
-
-                if(isset($model->check_group_3))
-                {
-                    $html = Html::tag('p', Html::encode($testCheckTypesForGroup3[$model->check_group_3]['text']),
-                        ['class' => 'label label-'.$testCheckTypesForGroup3[$model->check_group_3]['class'],
-                            'title' => $testCheckTypesForGroup3[$model->check_group_3]['title']
-                        ]);
-                }
-                else{
-                    $html = Html::tag('p', '--',
-                        ['class' => 'label label-default',
-                            'title'   => 'проверка не проводилась'
-
-                        ]);
-                }
-
-                return $html;
+            'value' => function ($model) {
 
             }
+
         ],
         'actions' =>
-        [
-            'class' => 'yii\grid\ActionColumn',
-            'header' => 'Действия',
-            'template' => '{view}',
-            'buttons' => [
-                'view' => function($key){
-                    return Html::a('<span class="glyphicon glyphicon-eye-open"></span>','#',
-                        [
-                        'id' => 'activity-view-link',
-                        'title' => Yii::t('yii', 'Просмотр таста'),
-                        'data-toggle' => 'modal',
-                        'data-target' => '#activity-modal',
-                        'data-id' => $key,
-                        'data-pjax' => '0',
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'header' => 'Действия',
+                'template' => '{view}',
+                'buttons' => [
+                    'view' => function ($key) {
+                        return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', '#',
+                            [
+                                'id' => 'activity-view-link',
+                                'title' => Yii::t('yii', 'Просмотр таста'),
+                                'data-toggle' => 'modal',
+                                'data-target' => '#activity-modal',
+                                'data-id' => $key,
+                                'data-pjax' => '0',
 
-                    ]);
-                }
+                            ]);
+                    }
 
+                ]
+                //'format' => 'raw',
+                // 'value' => '',
             ]
-            //'format' => 'raw',
-           // 'value' => '',
-        ]
 
     ]
 ]);
 ?>
 <?
 Modal::begin([
-'header' => '<h4 class="modal-title">Create New</b></h4>',
-'toggleButton' => ['label' => 'Create New'],
-'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
+    'header' => '<h4 class="modal-title">Create New</b></h4>',
+//'toggleButton' => ['label' => 'Create New'],
+    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
 ]);
 
 echo 'Say hello...';
