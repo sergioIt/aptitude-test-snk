@@ -136,6 +136,7 @@ class Test extends \yii\db\ActiveRecord
             'updated' => 'Изменён',
             'status' => 'Статус',
             'deny_reason' => 'Причина отказа',
+            'score' => 'Общий балл',
         ];
     }
 

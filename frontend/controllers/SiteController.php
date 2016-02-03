@@ -158,7 +158,7 @@ class SiteController extends Controller
                 }
             }
         }
-
+        $this->layout = 'custom';
         return $this->render('signup', [
             'model' => $model,
         ]);

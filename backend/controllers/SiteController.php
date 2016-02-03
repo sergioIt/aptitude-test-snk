@@ -4,9 +4,9 @@ namespace backend\controllers;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
-use common\models\LoginForm;
+use backend\models\LoginForm;
 use yii\filters\VerbFilter;
-
+use yii\helpers\Url;
 /**
  * Site controller
  */
@@ -23,12 +23,25 @@ class SiteController extends Controller
                 'rules' => [
                     [
                         'actions' => ['login', 'error'],
+                        'controllers' => ['site'],
                         'allow' => true,
                     ],
                     [
-                        'actions' => ['logout', 'index'],
+                        'actions' => ['logout', 'index', 'list'],
+                        'controllers' => ['site'],
                         'allow' => true,
                         'roles' => ['@'],
+                    ],
+                    [
+                        'actions' => ['list'],
+                        'controllers' => ['test'],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                    [
+                        'allow' => true,
+                        'actions' => ['login', 'signup'],
+                        'roles' => ['?'],
                     ],
                 ],
             ],
@@ -61,13 +74,18 @@ class SiteController extends Controller
     public function actionLogin()
     {
         if (!\Yii::$app->user->isGuest) {
-            return $this->goHome();
+
+           // return $this->goHome();
+            return  $this->redirect(Url::to(['test/list']));
         }
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            //return $this->goBack();
+            return  $this->redirect(Url::to(['test/list']));
+
         } else {
+            $this->layout = 'custom';
             return $this->render('login', [
                 'model' => $model,
             ]);
@@ -77,7 +95,15 @@ class SiteController extends Controller
     public function actionLogout()
     {
         Yii::$app->user->logout();
+        return  $this->redirect(Url::to(['site/login']));
+      //  return $this->goHome();
+    }
 
-        return $this->goHome();
+    /**
+     * Регистрирует нового пользователя для бэкенда
+     */
+    public function actionRegister(){
+
+
     }
 }
