@@ -392,7 +392,7 @@ class m160126_143740_fill_questions_and_answers extends Migration
                 ]
         ],
         35 => [
-            'text' => 'Вы готовы не видеть своих близких полгода?',
+            'text' => 'Вы готовы не видеть своих близких в течение полугода и более?',
             'evaluative' => 1,
             'answers' => [
             ['text' => 'да, готов',  'value' => 2],
