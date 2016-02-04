@@ -96,11 +96,11 @@ class Test extends \yii\db\ActiveRecord
      *
      * @var array
      */
-    private  static  $scoreTypes = [
+    private static $scoreTypes = [
         self::SCORE_TYPE_BAD => ['min' => self::MIN_POSSIBLE_SCORE, 'max' => -22],
         self::SCORE_TYPE_DOUBTER => ['min' => -23, 'max' => 32],
         self::SCORE_TYPE_INCLINED_TO_DOUBT => ['min' => 33, 'max' => 40],
-        self::SCORE_TYPE_GOOD  => ['min' => 41, 'max' => 80],
+        self::SCORE_TYPE_GOOD => ['min' => 41, 'max' => 80],
         self::SCORE_TYPE_CRAFTY => ['min' => 81, 'max' => self::MAX_POSSIBLE_SCORE],
     ];
 
@@ -155,7 +155,7 @@ class Test extends \yii\db\ActiveRecord
             // user_id и статус не могут быть null
             [['user_id', 'status'], 'integer', 'integerOnly' => true],
             // общий бал, резульататы проверочных групп могут быть целым число либо null
-            [['score', 'check_group_1', 'check_group_2', 'check_group_3','check_adequacy', 'check_health'], 'integer',],
+            [['score', 'check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'integer',],
 
             ['created',
                 'date',
@@ -163,10 +163,10 @@ class Test extends \yii\db\ActiveRecord
             ],
             ['deny_reason', 'string', 'max' => 500],
             ['deny_reason', 'trim'],
-            ['score', 'in', 'range' => [self::MIN_POSSIBLE_SCORE,self::MAX_POSSIBLE_SCORE]],
+            ['score', 'in', 'range' => [self::MIN_POSSIBLE_SCORE, self::MAX_POSSIBLE_SCORE]],
             // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
-            [['check_group_1', 'check_group_2', 'check_group_3','check_adequacy', 'check_health'], 'in',
-                'range' => [self::STATUS_CHECK_GROUP_TRUE,self::STATUS_CHECK_GROUP_FALSE]],
+            [['check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'in',
+                'range' => [self::STATUS_CHECK_GROUP_TRUE, self::STATUS_CHECK_GROUP_FALSE]],
 
         ];
     }
@@ -253,15 +253,15 @@ class Test extends \yii\db\ActiveRecord
      * @see UNWANTED_ANSWER_TYPE_FOR_ADEQUACY
      * @return array|\yii\db\ActiveRecord[]
      */
-    private function getUnwantedAnswers($unwantedAnswerType){
+    private function getUnwantedAnswers($unwantedAnswerType)
+    {
 
         return TestResult::find()
             ->select(['ans.unwanted'])
             ->leftJoin('test_answers as ans', 'test_result.answer_id = ans.id')
             ->where(['test_id' => $this->id, 'ans.unwanted' => $unwantedAnswerType])
             ->asArray()
-            ->all()
-            ;
+            ->all();
     }
 
     /**
@@ -335,15 +335,17 @@ class Test extends \yii\db\ActiveRecord
      * @param $testId
      * @return bool
      */
-    public static function ifTestIsFault($testId){
+    public static function ifTestIsFault($testId)
+    {
         $test = self::findOne(['id' => $testId]);
 
-        if($test->status == self::STATUS_FAULT){
+        if ($test->status == self::STATUS_FAULT) {
 
             return true;
         }
         return false;
     }
+
     /**
      * Проверяет ответы на вопросы в проверочной группе
      */
@@ -384,7 +386,7 @@ class Test extends \yii\db\ActiveRecord
                 break;
             // обработка 2-ой группы проверочных вопросов
             case 2:
-               // echo 'group 2';
+                // echo 'group 2';
                 $values = [];
 
                 foreach ($results as $result) {
@@ -424,28 +426,28 @@ class Test extends \yii\db\ActiveRecord
     /**
      * Проверяет колчество нежелательных ответов по типу "адекватность"
      */
-    private function processCheckAdequacy(){
+    private function processCheckAdequacy()
+    {
 
         $unwanted = $this->getUnwantedAnswers(self::UNWANTED_ANSWER_TYPE_FOR_ADEQUACY);
 
-            if(count($unwanted) > self::LIMIT_UNWANTED_ANSWERS_CRITERIA_ADEQUACY){
+        if (count($unwanted) > self::LIMIT_UNWANTED_ANSWERS_CRITERIA_ADEQUACY) {
 
-                $this->check_adequacy = self::STATUS_CHECK_GROUP_FALSE;
-            }
-        else $this->check_adequacy = self::STATUS_CHECK_GROUP_TRUE;
+            $this->check_adequacy = self::STATUS_CHECK_GROUP_FALSE;
+        } else $this->check_adequacy = self::STATUS_CHECK_GROUP_TRUE;
     }
 
     /**
      *  Проверяет колчество нежелательных ответов по типу "здоровье"
      */
-    private function processCheckHealth(){
+    private function processCheckHealth()
+    {
         $unwanted = $this->getUnwantedAnswers(self::UNWANTED_ANSWER_TYPE_FOR_HEALTH);
 
-            if(count($unwanted) > self::LIMIT_UNWANTED_ANSWERS_CRITERIA_HEALTH){
+        if (count($unwanted) > self::LIMIT_UNWANTED_ANSWERS_CRITERIA_HEALTH) {
 
-                $this->check_health = self::STATUS_CHECK_GROUP_FALSE;
-            }
-        else $this->check_health = self::STATUS_CHECK_GROUP_TRUE;
+            $this->check_health = self::STATUS_CHECK_GROUP_FALSE;
+        } else $this->check_health = self::STATUS_CHECK_GROUP_TRUE;
     }
 
     /**
@@ -454,12 +456,13 @@ class Test extends \yii\db\ActiveRecord
      * @param $data
      * @return bool
      */
-    public static function saveDenyReason($data){
+    public static function saveDenyReason($data)
+    {
 
         $test = self::findOne(['id' => $data['test_id']]);
 
-        if($test){
-           $test->deny_reason = $data['deny_reason'];
+        if ($test) {
+            $test->deny_reason = $data['deny_reason'];
             return $test->save();
         }
 
@@ -472,18 +475,19 @@ class Test extends \yii\db\ActiveRecord
      * @param $testId
      * @return bool
      */
-    public static function getScoreType($testId){
+    public static function getScoreType($testId)
+    {
 
-        $test = self::findOne(['id' =>$testId]);
+        $test = self::findOne(['id' => $testId]);
 
-        if($test && $test->status >= $test::STATUS_FINISHED){
+        if ($test && $test->status >= $test::STATUS_FINISHED) {
 
             // проверка на то, что общий балл попал в какой-то дапазон типов
-            foreach(self::$scoreTypes as $type=>$range){
+            foreach (self::$scoreTypes as $type => $range) {
 
-                if($range['min'] <= $test->score && $test->score <= $range['max']){
+                if ($range['min'] <= $test->score && $test->score <= $range['max']) {
 
-                   return $type;
+                    return $type;
 
                 }
 
@@ -499,13 +503,14 @@ class Test extends \yii\db\ActiveRecord
      * и данных для их рендеринга в списке тестов
      * @return array
      */
-    public static function getTestStatusLabels(){
+    public static function getTestStatusLabels()
+    {
 
-        return   [ self::STATUS_DEFAULT => ['class' => 'default', 'text' => 'только начат'],
+        return [self::STATUS_DEFAULT => ['class' => 'default', 'text' => 'только начат'],
             self::STATUS_NOT_FINISHED => ['class' => 'warning', 'text' => 'не закончен'],
             self::STATUS_FINISHED => ['class' => 'success', 'text' => 'закончен'],
             self::STATUS_FAULT => ['class' => 'danger', 'text' => 'закончен с отказом']
-            ];
+        ];
     }
 
     /**
@@ -514,31 +519,32 @@ class Test extends \yii\db\ActiveRecord
      * @pram $checkGroupId номер проверочной группы вопросов
      * @return array|bool
      */
-    public static function getTestCheckResultsLabels($checkGroupId){
+    public static function getTestCheckResultsLabels($checkGroupId)
+    {
 
         // в зависимости от номера проверочной группы возвращаем массив соответствий
-        switch($checkGroupId){
+        switch ($checkGroupId) {
 
             case 1:
-            return [
-                self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок','title' => 'нет подозрений на ложь'],
-                self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
-            ];
+                return [
+                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на ложь'],
+                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
+                ];
             case 2:
-            return [
-                self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок','title' => 'нет подозрений на ложь'],
-                self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
-            ];
+                return [
+                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на ложь'],
+                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
+                ];
             case 3:
-            return [
-                self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок','title' => 'нет подозрений на проблемы с неопредёлнностью'],
-                self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'неопределённость', 'title' => 'подозрение на проблемы с неопредёлнностью'],
-            ];
+                return [
+                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы с неопредёлнностью'],
+                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'неопределённость', 'title' => 'подозрение на проблемы с неопредёлнностью'],
+                ];
 
 
         }
         // если номер группы другой либо не пришёл - возвращаем ложь
-          return false;
+        return false;
     }
 
     /**
@@ -547,11 +553,12 @@ class Test extends \yii\db\ActiveRecord
      *
      *
      */
-    public static function getRecommendationsLabels(){
+    public static function getRecommendationsLabels()
+    {
 
         return [
 
-            self::SCORE_TYPE_BAD => ['class' => 'danger', 'text' => 'не подходит','title' => 'Рекомендация: отказать в рассмотрении данной кандидатуры на
+            self::SCORE_TYPE_BAD => ['class' => 'danger', 'text' => 'не подходит', 'title' => 'Рекомендация: отказать в рассмотрении данной кандидатуры на
 место'],
             self::SCORE_TYPE_DOUBTER => ['class' => 'warning', 'text' => 'сомневающийся', 'title' => 'Данный кандидат, похоже, еще не
 совсем определился, нужна ему эта работа или нет. Рекомендация к более
@@ -564,19 +571,55 @@ class Test extends \yii\db\ActiveRecord
 кандидату, набравшему больше баллов.
 
 '],
-            self::SCORE_TYPE_INCLINED_TO_DOUBT => ['class' => 'warning', 'text' => 'скорее сомневающийся','title' => 'Рекомендация: Кандидат скорее
+            self::SCORE_TYPE_INCLINED_TO_DOUBT => ['class' => 'warning', 'text' => 'скорее сомневающийся', 'title' => 'Рекомендация: Кандидат скорее
 тяготеет к “сомневающемуся типу”, - соответственно, от него можно ожидатьизменения решения в ту или иную сторону в любой момент. Если есть
 возможность, отложите рассмотрение данной кандидатуры на время, не
 принимайте окончательное решение по нему. Рассмотрите более пристально
 кандидатов, набравших более 40 баллов'],
 
-            self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит','title' => 'Рекомендация: данные результаты прохождения теста говорят о
+            self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит', 'title' => 'Рекомендация: данные результаты прохождения теста говорят о
 желании и готовности данного кандидата работать в ЗАО “СНК” на должности
 сварщика термитной сварки'],
-            self::SCORE_TYPE_GOOD => ['class' => 'primary', 'text' => 'хитрый?','title' => 'Рекомендация: Внимание! Кандидат
+            self::SCORE_TYPE_GOOD => ['class' => 'primary', 'text' => 'хитрый?', 'title' => 'Рекомендация: Внимание! Кандидат
 набрал максимальное количество баллов по тесту. Стоит приглядеться к нему повнимательнее, возможно, что его хитрость проявится позднее и в других
 ситуациях в работе!'],
 
+        ];
+    }
+
+    /**
+     * Возвращает массив соответствий по итогам проверки вопросов на адекватность
+     *
+     * @return array
+     */
+    public static function getCheckAdequacyLabels()
+    {
+        return [
+            self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы с адекватностью'],
+            self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'адекватность', 'title' => 'Возможно, не следует всерьез рассматривать данного кандидата на
+должность сварщика термитной сварки. В противном случае у него стоит
+уточнить, сам ли он заполнял тест и насколько честно (не в шутку ли) выбирал
+тот или иной вариант ответа. А также снова рассказать ему о тех сложностях,
+что его ожидают и снова спросить о его готовности во всем этом участвовать'],
+        ];
+
+    }
+
+    /**
+     * Возвращает массив соответствий по итогам проверки вопросов на адекватность
+     *
+     * @return array
+     */
+    public static function getCheckHealthLabels()
+    {
+
+        return [
+            self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы со здоровьем'],
+            self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'здороввье', 'title' => 'Внимание!
+Следует задать вопрос кандидату по его здоровью, уточнение информации по
+самочувствию во время переездов на любом виде транспорта. Рекомендуется
+индивидуальный разговор по предстоящим переездам при очном собеседовании
+или по телефону'],
         ];
     }
 

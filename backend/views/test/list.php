@@ -153,10 +153,38 @@ use yii\bootstrap\Modal;
                 }
             ],
         'additional_notify' => [
-            'header' => 'Допполнительные <br> уведомления',
+            'header' => 'Нежелательные <br> ответы',
             'format' => 'raw',
-            'value' => function ($model) {
+            'value' => function ($model) use ($testCheckAdequacyLabels,$testCheckHealthLabels) {
 
+                $html = '';
+                $labelAdequacy = '';
+                $labelHealth = '';
+
+                if (! isset($model->check_adequacy) && !isset($model->check_health))
+                {
+                    $html = Html::tag('p', '--',
+                        ['class' => 'label label-default',
+                            'title' => 'проверка не проводилась'
+                        ]);
+
+                }
+
+                if (isset($model->check_adequacy) ) {
+                    $html .= Html::tag('p', Html::encode($testCheckAdequacyLabels[$model->check_adequacy]['text']),
+                        ['class' => 'label label-'.$testCheckAdequacyLabels[$model->check_adequacy]['class'],
+                            'title' =>  $testCheckAdequacyLabels[$model->check_adequacy]['title']
+                        ]);
+                }
+
+                if (isset($model->check_health) ) {
+                    $html .=' '. Html::tag('p', Html::encode($testCheckHealthLabels[$model->check_health]['text']),
+                        ['class' => 'label label-'.$testCheckHealthLabels[$model->check_health]['class'],
+                            'title' =>  $testCheckHealthLabels[$model->check_health]['title']
+                        ]);
+                }
+
+                return $html;
             }
 
         ],

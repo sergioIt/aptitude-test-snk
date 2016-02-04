@@ -40,6 +40,8 @@ class TestController extends Controller{
             'testCheckResultsLabels' => Test::getTestCheckResultsLabels(1),
             'testCheckResultsLabelsForGroup3' => Test::getTestCheckResultsLabels(3),
             'testScoreRecommendations' => Test::getRecommendationsLabels(),
+            'testCheckAdequacyLabels' => Test::getCheckAdequacyLabels(),
+            'testCheckHealthLabels' => Test::getCheckHealthLabels(),
             ]
         );
     }
