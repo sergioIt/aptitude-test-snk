@@ -33,7 +33,6 @@ class TestController extends \yii\web\Controller
 
             $this->layout = 'custom';
 
-            // @todo создание нового теста перед редиректом н
             $test = $this->createNewTest();
             if ($test) {
                 $session['test_id'] = $test->id;
@@ -46,11 +45,7 @@ class TestController extends \yii\web\Controller
                 throw new Exception('error creating new test');
             }
 
-        } else {
-
-
         }
-
 
         $this->layout = 'custom';
         return $this->render('begin', ['model' => $testUser]);
