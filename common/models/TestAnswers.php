@@ -24,6 +24,15 @@ use Yii;
 class TestAnswers extends \yii\db\ActiveRecord
 {
     /**
+     * Тип нежелательного ответа: ответ в шутку
+     */
+    const TYPE_UNWANTED_BY_JOKE = 1;
+    /**
+     * Тип нежелательного ответа: склонность болеть
+     */
+    const TYPE_UNWANTED_BY_DISEASE = 2;
+
+    /**
      * @inheritdoc
      */
     public static function tableName()
@@ -38,7 +47,7 @@ class TestAnswers extends \yii\db\ActiveRecord
     {
         return [
             [['question_id', 'text'], 'required'],
-            [['question_id', 'value', 'custom', 'need_confirm'], 'integer'],
+            [['question_id', 'value', 'custom', 'need_confirm','unwanted'], 'integer'],
             [['text'], 'string', 'max' => 255]
         ];
     }
