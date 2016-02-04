@@ -51,6 +51,15 @@ class Test extends \yii\db\ActiveRecord
      * Разниа в баллах между проверочными вопросами, при которой считаем, что что-то не так
      */
     const CHECK_CRITERIA_DIFFERENCE = 2;
+    /**
+     * критическое колчесво нежелательных ответов по признаку "адекватность"
+     */
+    const LIMIT_UNWANTED_ANSWERS_CRITERIA_ADEQUACY = 2;
+    /**
+     * критическое колчесво нежелательных ответов по признаку "здоровье"
+     */
+    const LIMIT_UNWANTED_ANSWERS_CRITERIA_HEALTH = 2;
+
 
     /**
      * статус итогоа проверки 1-ой группы вопросов: пройдена
@@ -71,6 +80,15 @@ class Test extends \yii\db\ActiveRecord
     const SCORE_TYPE_INCLINED_TO_DOUBT = 'inclined_to_doubt';
     const SCORE_TYPE_GOOD = 'good';
     const SCORE_TYPE_CRAFTY = 'crafty';
+
+    /**
+     * значение поля unwanted для ответа, который участвует в анализе на адекватность
+     */
+    const UNWANTED_ANSWER_TYPE_FOR_ADEQUACY = 1;
+    /**
+     * значение поля unwanted для ответа, который участвует в анализе на здоровье
+     */
+    const UNWANTED_ANSWER_TYPE_FOR_HEALTH = 2;
 
     /**
      * массив соответствий границ, в которые попал общий балл,
@@ -137,14 +155,18 @@ class Test extends \yii\db\ActiveRecord
             // user_id и статус не могут быть null
             [['user_id', 'status'], 'integer', 'integerOnly' => true],
             // общий бал, резульататы проверочных групп могут быть целым число либо null
-            [['score', 'check_group_1', 'check_group_2', 'check_group_3'], 'integer',],
+            [['score', 'check_group_1', 'check_group_2', 'check_group_3','check_adequacy', 'check_health'], 'integer',],
+
             ['created',
                 'date',
                 'format' => self::DATE_DB_FORMAT_FOR_VALIDATOR
             ],
             ['deny_reason', 'string', 'max' => 500],
             ['deny_reason', 'trim'],
-            ['score', 'in', 'range' => [self::MIN_POSSIBLE_SCORE,self::MAX_POSSIBLE_SCORE]]
+            ['score', 'in', 'range' => [self::MIN_POSSIBLE_SCORE,self::MAX_POSSIBLE_SCORE]],
+            // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
+            [['check_group_1', 'check_group_2', 'check_group_3','check_adequacy', 'check_health'], 'in',
+                'range' => [self::STATUS_CHECK_GROUP_TRUE,self::STATUS_CHECK_GROUP_FALSE]],
 
         ];
     }
@@ -226,8 +248,25 @@ class Test extends \yii\db\ActiveRecord
     }
 
     /**
+     * Получает все ответы, которые помечены как не желаьтельные
+     * @param int $unwantedAnswerType тип нежелательного вопроса
+     * @see UNWANTED_ANSWER_TYPE_FOR_ADEQUACY
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    private function getUnwantedAnswers($unwantedAnswerType){
+
+        return TestResult::find()
+            ->select(['ans.unwanted'])
+            ->leftJoin('test_answers as ans', 'test_result.answer_id = ans.id')
+            ->where(['test_id' => $this->id, 'ans.unwanted' => $unwantedAnswerType])
+            ->asArray()
+            ->all()
+            ;
+    }
+
+    /**
      * Обновляет данные теста:
-     * сколько баллов набрано
+     * сколько баллов набрано, и если вопрос последний, то пост-обработка групп вопросов
      * @param $testId
      */
     public static function updateTest($testId)
@@ -271,10 +310,18 @@ class Test extends \yii\db\ActiveRecord
             if (TestAnswers::findOne($result->answer_id)->need_confirm > 0) {
                 $test->status = self::STATUS_FAULT;
             }
+
+
             // обработка проверочных вопросов
             $test->processCheckGroups(1);
             $test->processCheckGroups(2);
             $test->processCheckGroups(3);
+
+            // обработка на нежелательные ответы
+            // проверка на адкеватность
+            $test->processCheckAdequacy();
+            //проверка на здоровье
+            $test->processCheckHealth();
 
         }
 
@@ -372,6 +419,33 @@ class Test extends \yii\db\ActiveRecord
                 break;
         }
 
+    }
+
+    /**
+     * Проверяет колчество нежелательных ответов по типу "адекватность"
+     */
+    private function processCheckAdequacy(){
+
+        $unwanted = $this->getUnwantedAnswers(self::UNWANTED_ANSWER_TYPE_FOR_ADEQUACY);
+
+            if(count($unwanted) > self::LIMIT_UNWANTED_ANSWERS_CRITERIA_ADEQUACY){
+
+                $this->check_adequacy = self::STATUS_CHECK_GROUP_FALSE;
+            }
+        else $this->check_adequacy = self::STATUS_CHECK_GROUP_TRUE;
+    }
+
+    /**
+     *  Проверяет колчество нежелательных ответов по типу "здоровье"
+     */
+    private function processCheckHealth(){
+        $unwanted = $this->getUnwantedAnswers(self::UNWANTED_ANSWER_TYPE_FOR_HEALTH);
+
+            if(count($unwanted) > self::LIMIT_UNWANTED_ANSWERS_CRITERIA_HEALTH){
+
+                $this->check_health = self::STATUS_CHECK_GROUP_FALSE;
+            }
+        else $this->check_health = self::STATUS_CHECK_GROUP_TRUE;
     }
 
     /**
