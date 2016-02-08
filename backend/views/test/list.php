@@ -10,7 +10,10 @@ use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\bootstrap\Modal;
 
-/*var_dump($testStatusTypes);*/
+$this->registerJsFile('js/backend.js',
+    ['depends' => ['\yii\web\JqueryAsset'],
+        'position' => \yii\web\View::POS_END,]
+);
 ?>
 <h2>Список тестов </h2>
 
@@ -35,33 +38,14 @@ use yii\bootstrap\Modal;
                 'format' => 'raw',
                 'value' =>
 
-                    function ($model, $key, $index, $column) use ($testStatusTypes) {
+                    function ($model, $key, $index, $column) use ($testStatusLabels) {
 
-                        return Html::tag('p', Html::encode($testStatusTypes[$model->status]['text']),
-                            ['class' => 'label label-' . $testStatusTypes[$model->status]['class']
+                        return Html::tag('p', Html::encode($testStatusLabels[$model->status]['text']),
+                            ['class' => 'label label-' . $testStatusLabels[$model->status]['class']
                             ]);
                     }
             ],
-        'score'/* => [
-
-            'format' => 'raw',
-            'value' => function ($model) {
-
-                if (isset($model->score)) {
-
-                    $html = Html::tag('p', $model->score,
-                        ['class' => 'label label-primary',
-
-                        ]);
-                } else {
-                    $html = Html::tag('p', '---',
-                        ['class' => 'label label-default',
-                            'title' => 'нет оценки'
-                        ]);
-                }
-                return $html;
-            }
-        ]*/,
+        'score',
         'recommendation' => [
             'header' => 'Рекоммендация',
             'format' => 'raw',
@@ -158,8 +142,8 @@ use yii\bootstrap\Modal;
             'value' => function ($model) use ($testCheckAdequacyLabels,$testCheckHealthLabels) {
 
                 $html = '';
-                $labelAdequacy = '';
-                $labelHealth = '';
+                //$labelAdequacy = '';
+               // $labelHealth = '';
 
                 if (! isset($model->check_adequacy) && !isset($model->check_health))
                 {
@@ -194,38 +178,34 @@ use yii\bootstrap\Modal;
                 'header' => 'Действия',
                 'template' => '{view}',
                 'buttons' => [
-                    'view' => function ($key) {
-                        return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', '#',
+                    'view' => function ($url, $model, $key) {
+                        return Html::button(Html::tag('span','',
+                            ['class'=>'glyphicon glyphicon-search', 'aria-hidden'=>'true']),
                             [
-                                'id' => 'activity-view-link',
-                                'title' => Yii::t('yii', 'Просмотр таста'),
+                                'class' => 'btn btn-sm btn-primary btn_view_test',
+                                'title' => Yii::t('yii', 'Просмотр теста'),
                                 'data-toggle' => 'modal',
                                 'data-target' => '#activity-modal',
-                                'data-id' => $key,
-                                'data-pjax' => '0',
+                                'data-id' => $model->id,
+                                //'data-pjax' => '0',
 
                             ]);
                     }
 
-                ]
-                //'format' => 'raw',
-                // 'value' => '',
             ]
 
     ]
-]);
-?>
-<?
+]]);
+
 Modal::begin([
-    'header' => '<h4 class="modal-title">Create New</b></h4>',
-//'toggleButton' => ['label' => 'Create New'],
-    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
+    'id' => 'activity-modal',
+    'header' => '<h3 class="modal-title">Результаты теста</h3>',
+    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Закрыть</a>',
+    'size'=>Modal::SIZE_LARGE,
 ]);
 
-echo 'Say hello...';
-
+//echo 'Say hello...';
 Modal::end();
-
 
 ?>
 

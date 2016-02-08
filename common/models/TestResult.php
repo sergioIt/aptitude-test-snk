@@ -64,6 +64,7 @@ class TestResult extends \yii\db\ActiveRecord
     }
 
     /**
+     * Связь с вопросом
      * @return \yii\db\ActiveQuery
      */
     public function getQuestion()
@@ -72,6 +73,16 @@ class TestResult extends \yii\db\ActiveRecord
     }
 
     /**
+     * Связь с ответом
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAnswer()
+    {
+        return $this->hasOne(TestAnswers::className(), ['id' => 'answer_id']);
+    }
+
+    /**
+     * Связь с тестом
      * @return \yii\db\ActiveQuery
      */
     public function getTest()
@@ -141,6 +152,56 @@ class TestResult extends \yii\db\ActiveRecord
         }
 
         return $saved;
+    }
+
+    /**
+     * Компонует массив резульатов: группирует ответы, на вопросы, подразумеваеющие несколько вариантов ответа одноверменно
+     * и удаляет дубли из массива резульататов, получающиеся из-за того,
+     * что каждый ответ хранится отдельно, даже если в случае когда несколько ответов на один вопрос
+     *
+     * @param array $results исходный массив результатов
+     * @return array $results обработанный массив результатов
+     */
+    public static function composeAjaxOutput($results){
+
+        // собираем ответы на вопрос, предлагающий несколько вариантов овтета
+        $answersCombined = [];
+        //массив соответствий номера вопроса и id резульатов, которые нужно исключить во view
+        // т.к. они дублируются из-за структуры хранения ответов
+
+        $keysToUnset = [];
+        foreach($results as $key=>$result){
+
+            if(isset($result['question']['multiple_answers'])){
+
+                $answersCombined[$result['question_id']][] = $result['answer']['text'];
+                $keysToUnset[$result['question_id']][] = $key;
+            }
+
+        }
+        // удаляем 1-ый элемент массива ключей для элеметнтов, которые нужно убрать из массива результатов
+        // чтобы убрать только дубли
+        foreach ($keysToUnset as &$array) {
+            array_shift($array);
+        }
+        // удаляем дубли в массиве вопросов и ответов
+        foreach ($keysToUnset as $questionKeysToUnSet) {
+
+            foreach($questionKeysToUnSet as $questionKeyToUnSet){
+
+                unset($results[$questionKeyToUnSet]);
+            }
+        }
+        //стыкуем варианты ответов, к массиву результатов
+        foreach($results as &$result){
+
+            if(isset($answersCombined[$result['question_id']])){
+
+                $result['answers_combined'] = implode(',',$answersCombined[$result['question_id']]);
+            }
+        }
+
+        return $results;
     }
 
 
