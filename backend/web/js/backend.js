@@ -4,8 +4,9 @@
  */
 
 $('.btn_view_test').click(function() {
+    var url = $(this).data('url');
     $.get(
-        'view',
+        url,
         {
             test_id: $(this).data('id')
         },

@@ -187,8 +187,7 @@ $this->registerJsFile('js/backend.js',
                                 'data-toggle' => 'modal',
                                 'data-target' => '#activity-modal',
                                 'data-id' => $model->id,
-                                //'data-pjax' => '0',
-
+                                'data-url' => \yii::$app->getUrlManager()->createUrl('test/view')
                             ]);
                     }
 
