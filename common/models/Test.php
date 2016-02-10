@@ -163,7 +163,7 @@ class Test extends \yii\db\ActiveRecord
             ],
             ['deny_reason', 'string', 'max' => 500],
             ['deny_reason', 'trim'],
-            ['score', 'in', 'range' => [self::MIN_POSSIBLE_SCORE, self::MAX_POSSIBLE_SCORE]],
+            [['score'], 'integer', 'min' => self::MIN_POSSIBLE_SCORE, 'max' => self::MAX_POSSIBLE_SCORE ],
             // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
             [['check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'in',
                 'range' => [self::STATUS_CHECK_GROUP_TRUE, self::STATUS_CHECK_GROUP_FALSE]],
