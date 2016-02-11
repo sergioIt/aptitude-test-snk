@@ -19,8 +19,28 @@ $this->registerJsFile('js/app.js', [ 'depends' => ['\yii\web\JqueryAsset'],
     );
 $this->title = 'Начало теста';
 ?>
+<div class="container">
 
-<div class="begin-test-contact">
+
+<div class="jumbotron" id="intro">
+    <h1>Вас приветствует команда компании ЗАО “СНК”! </h1>
+
+    <h2> Сейчас Вам предстоит пройти входное тестирование на должность сварщика термитной сварки</h2>
+    <h2> Просим Вас отвечать на вопросы теста вдумчиво и честно.<br>
+        Прежде всего, для самих себя.
+        <br>Нам в команду нужны люди, которые хотят
+        работать и пришли к нам надолго. Верим, что и Вы пришли с той же целью.
+
+    </h2>
+        <h2> Удачи! </h2>
+    <p>
+        <br>
+        <a class="btn btn-primary btn-lg" href="#" role="button" id="btn_begin_test">Начать тест</a>
+    </p>
+
+</div>
+
+    <div class="begin-test-contact" id="begin-test-form">
     <h1><?= Html::encode($this->title) ?></h1>
 
 
@@ -62,3 +82,5 @@ $this->title = 'Начало теста';
     </div>
 
 </div>
+
+    </div>

@@ -8,6 +8,11 @@ $(document).ready(function(){
 
     $('.input_phone').inputmask({"mask": "+7(999)999-9999"});
 
+    $('#btn_begin_test').on('click',function(){
+
+        $('#intro').hide();
+        $('#begin-test-form').show();
+    });
 
 
 });
