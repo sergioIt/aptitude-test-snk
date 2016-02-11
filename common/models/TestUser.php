@@ -97,7 +97,7 @@ class TestUser extends \yii\db\ActiveRecord
 
         if($diff->format('%y') < self::MINIMUM_AGE){
 
-            $this->addError($attribute, 'Слишком молодой');
+            $this->addError($attribute, 'указанная дата рождения соответствует возрасту менее '.self::MINIMUM_AGE. ' лет');
         }
     }
 

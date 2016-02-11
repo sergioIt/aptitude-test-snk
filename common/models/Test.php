@@ -81,6 +81,8 @@ class Test extends \yii\db\ActiveRecord
     const SCORE_TYPE_GOOD = 'good';
     const SCORE_TYPE_CRAFTY = 'crafty';
 
+    const TIMEZONE = 'Europe/Moscow';
+
     /**
      * значение поля unwanted для ответа, который участвует в анализе на адекватность
      */
@@ -195,11 +197,14 @@ class Test extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
 
+            $date = new \DateTime();
+            $date->setTimezone( new \DateTimeZone(self::TIMEZONE));
+
             if ($this->isNewRecord) {
-                $this->created = (new \DateTime())->format('Y-m-d H:i:s');
+                $this->created =$date->format('Y-m-d H:i:s');
             } else {
 
-                $this->updated = (new \DateTime())->format('Y-m-d H:i:s');
+                $this->updated =$date->format('Y-m-d H:i:s');
             }
 
             return true;
@@ -509,7 +514,7 @@ class Test extends \yii\db\ActiveRecord
         return [self::STATUS_DEFAULT => ['class' => 'default', 'text' => 'только начат'],
             self::STATUS_NOT_FINISHED => ['class' => 'warning', 'text' => 'не закончен'],
             self::STATUS_FINISHED => ['class' => 'success', 'text' => 'закончен'],
-            self::STATUS_FAULT => ['class' => 'danger', 'text' => 'закончен с отказом']
+            self::STATUS_FAULT => ['class' => 'danger', 'text' => 'отказ','title' => 'тест закончен с отказом']
         ];
     }
 
@@ -580,7 +585,7 @@ class Test extends \yii\db\ActiveRecord
             self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит', 'title' => 'Рекомендация: данные результаты прохождения теста говорят о
 желании и готовности данного кандидата работать в ЗАО “СНК” на должности
 сварщика термитной сварки'],
-            self::SCORE_TYPE_GOOD => ['class' => 'primary', 'text' => 'хитрый?', 'title' => 'Рекомендация: Внимание! Кандидат
+            self::SCORE_TYPE_CRAFTY=> ['class' => 'warning', 'text' => 'хитрый?', 'title' => 'Рекомендация: Внимание! Кандидат
 набрал максимальное количество баллов по тесту. Стоит приглядеться к нему повнимательнее, возможно, что его хитрость проявится позднее и в других
 ситуациях в работе!'],
 
