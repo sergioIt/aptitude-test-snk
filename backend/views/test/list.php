@@ -41,7 +41,7 @@ $this->registerJsFile('js/backend.js',
 
         'created' => [
             'attribute' => 'created',
-            'contentOptions' => ['style' => 'width:100px;'],
+        //    'contentOptions' => ['style' => 'width:100px;'],
         ],
         'updated',
         'status' =>
@@ -80,15 +80,6 @@ $this->registerJsFile('js/backend.js',
                         ]);
                 }
                 return $html;
-            }
-        ],
-        'sdsd'=>[
-
-            'value' => function ($model) use ($testScoreRecommendations) {
-
-                $type = $model->scoreType;
-
-                return $model->getTestDuration();
             }
         ],
         'check_group_1' =>
