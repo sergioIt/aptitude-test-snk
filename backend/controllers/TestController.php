@@ -8,11 +8,14 @@
 
 namespace backend\controllers;
 
+use common\models\TestUser;
 use yii\web\Controller;
 use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
 use common\models\Test;
 use common\models\TestResult;
+use common\models\TestUserSearch;
+use Yii;
 
 class TestController extends Controller
 {
@@ -29,15 +32,21 @@ class TestController extends Controller
         $this->layout = 'custom';
 
         $dataProvider = new ActiveDataProvider([
-            'query' => Test::find()
-                ->where(['in', 'status', [Test::STATUS_FINISHED, Test::STATUS_FAULT]]),
+            'query' => Test::find(),
+                //->where(['in', 'status', [Test::STATUS_FINISHED, Test::STATUS_FAULT]]),
             'pagination' => [
                 'pageSize' => 20,
             ],
         ]);
 
+
+        $searchModel = new TestUserSearch();
+      //  $dataProvider = $searchModel->search(Yii::$app->request->get());
+
+
         return $this->render('list',
             ['dataProvider' => $dataProvider,
+                'searchModel' => $searchModel,
                 'testStatusLabels' => Test::getTestStatusLabels(),
                 'testCheckResultsLabels' => Test::getTestCheckResultsLabels(1),
                 'testCheckResultsLabelsForGroup3' => Test::getTestCheckResultsLabels(3),

@@ -19,18 +19,30 @@ $this->registerJsFile('js/backend.js',
 
 <?= GridView::widget([
     'dataProvider' => $dataProvider,
+   // 'filterModel' => $searchModel,
     'columns' => [
         'id',
-        'user' => [
+        'fullUserName',
 
-            'header' => 'Пользователь',
+        'userAge',
+        'userPhone',
+
+        'isWorkedOnRailWay' => [
+            'header' => 'работал на жд',
+            'format' => 'raw',
             'value' =>
 
                 function ($model, $key, $index, $column) {
-                    return $model->user->name . ' ' . $model->user->surname;
+
+                   return $model->isWorkedOnRailWay();
                 }
+
         ],
-        'created',
+
+        'created' => [
+            'attribute' => 'created',
+            'contentOptions' => ['style' => 'width:100px;'],
+        ],
         'updated',
         'status' =>
             [
@@ -47,11 +59,13 @@ $this->registerJsFile('js/backend.js',
             ],
         'score',
         'recommendation' => [
+            'attribute'=>'sex',
             'header' => 'Рекоммендация',
             'format' => 'raw',
             'value' => function ($model) use ($testScoreRecommendations) {
 
-                $type = $model::getScoreType($model->id);
+                $type = $model->scoreType;
+
                 if ($type) {
 
                     $html = Html::tag('p', Html::encode($testScoreRecommendations[$type]['text']),
@@ -66,6 +80,15 @@ $this->registerJsFile('js/backend.js',
                         ]);
                 }
                 return $html;
+            }
+        ],
+        'sdsd'=>[
+
+            'value' => function ($model) use ($testScoreRecommendations) {
+
+                $type = $model->scoreType;
+
+                return $model->getTestDuration();
             }
         ],
         'check_group_1' =>
@@ -170,6 +193,28 @@ $this->registerJsFile('js/backend.js',
 
                 return $html;
             }
+
+        ],
+        'duration' => [
+        'header' => 'Скорость',
+        'format' => 'raw',
+'value' => function ($model) use ($testCheckAdequacyLabels,$testCheckHealthLabels) {
+
+    $html =' '. Html::tag('p', 'ok',
+            ['class' => 'label label-primary',
+                'title' =>  'продолжительность теста нормальная'
+            ]);
+
+    if($model->isPassedTooFast()){
+
+        $html =' '. Html::tag('p', 'быстро',
+                ['class' => 'label label-warning',
+                    'title' =>  'тест пройден слишком быстро'
+                ]);
+    }
+
+    return $html;
+}
 
         ],
         'actions' =>

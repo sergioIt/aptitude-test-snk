@@ -10,6 +10,9 @@ namespace common\models;
 
 use Yii;
 use frontend\models;
+use yii\data\ActiveDataProvider;
+
+//use Faker\Provider\DateTime;
 
 /**
  * This is the model class for table "test".
@@ -93,6 +96,12 @@ class Test extends \yii\db\ActiveRecord
     const UNWANTED_ANSWER_TYPE_FOR_HEALTH = 2;
 
     /**
+     * минимально допустимая продолжительность прохождениея теста
+     * если меньше, то появится предпреждение
+     */
+    const TEST_DURATION_MINIMUM_MINUTES = 8;
+
+    /**
      * массив соответствий границ, в которые попал общий балл,
      * и типов людей
      *
@@ -169,6 +178,7 @@ class Test extends \yii\db\ActiveRecord
             // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
             [['check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'in',
                 'range' => [self::STATUS_CHECK_GROUP_TRUE, self::STATUS_CHECK_GROUP_FALSE]],
+            ['fullUserName','safe']
 
         ];
     }
@@ -186,6 +196,9 @@ class Test extends \yii\db\ActiveRecord
             'status' => 'Статус',
             'deny_reason' => 'Причина отказа',
             'score' => 'Общий балл',
+            'fullUserName' => 'Имя',
+            'userPhone' => 'Телефон',
+            'userAge' => 'Возраст'
         ];
     }
 
@@ -215,11 +228,80 @@ class Test extends \yii\db\ActiveRecord
     }
 
     /**
+     * Получает запись из таблицы кандидатов, соответствубщую тесту
+     *
      * @return \yii\db\ActiveQuery
      */
     public function getUser()
     {
         return $this->hasOne(TestUser::className(), ['id' => 'user_id']);
+    }
+
+    /**
+     * Получает полное имя кандидата
+     * @return string
+     */
+    public function getFullUserName(){
+
+        return $this->user->name . ' '.$this->user->surname;
+    }
+
+    /**
+     * Получает номер телефона кандидата
+     * @return string
+     */
+    public function getUserPhone(){
+
+        return $this->user->phone;
+    }
+
+    public function isWorkedOnRailWay(){
+
+        $result = TestResult::find()
+          //->select('text')
+         // ->joinWith('question', false)
+            ->joinWith('answer')
+          ->where(['test_id' => $this->id, 'test_result.question_id' => 1])
+            ->asArray()
+          ->one();
+
+        return $result['answer']['text'];
+
+    }
+
+    /**
+     * Получает возраст кандидата по его дате рождения
+     * @return int
+     */
+    public function getUserAge(){
+
+        return (new \DateTime())->diff(new \DateTime($this->user->date_of_birth))->y;
+    }
+
+    /**
+     * Проверяет, не был ли пройден тест слишком быстро
+     */
+    public function isPassedTooFast(){
+
+        if($this->getTestDuration() < self::TEST_DURATION_MINIMUM_MINUTES){
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * получает продолжительность теста в минутах
+     */
+    public function getTestDuration(){
+
+        if($this->status > self::STATUS_DEFAULT){
+
+            return (new \DateTime($this->created))->diff(new \DateTime($this->updated))->i;
+        }
+
+        return false;
     }
 
     /**
@@ -477,20 +559,17 @@ class Test extends \yii\db\ActiveRecord
     /**
      *  Получает рекомендацию, исходя из общего балла
      *
-     * @param $testId
-     * @return bool
+     * @return string|bool
      */
-    public static function getScoreType($testId)
+    public function getScoreType()
     {
 
-        $test = self::findOne(['id' => $testId]);
-
-        if ($test && $test->status >= $test::STATUS_FINISHED) {
+        if ($this->status >= self::STATUS_FINISHED) {
 
             // проверка на то, что общий балл попал в какой-то дапазон типов
             foreach (self::$scoreTypes as $type => $range) {
 
-                if ($range['min'] <= $test->score && $test->score <= $range['max']) {
+                if ($range['min'] <= $this->score && $this->score <= $range['max']) {
 
                     return $type;
 
@@ -511,7 +590,7 @@ class Test extends \yii\db\ActiveRecord
     public static function getTestStatusLabels()
     {
 
-        return [self::STATUS_DEFAULT => ['class' => 'default', 'text' => 'только начат'],
+        return [self::STATUS_DEFAULT => ['class' => 'default', 'text' => 'начат','title' => 'тест начат, но на 1-ый вопрос ещё нет овтета'],
             self::STATUS_NOT_FINISHED => ['class' => 'warning', 'text' => 'не закончен'],
             self::STATUS_FINISHED => ['class' => 'success', 'text' => 'закончен'],
             self::STATUS_FAULT => ['class' => 'danger', 'text' => 'отказ','title' => 'тест закончен с отказом']
