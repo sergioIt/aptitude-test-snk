@@ -22,8 +22,14 @@ $this->registerJsFile('js/backend.js',
    // 'filterModel' => $searchModel,
     'columns' => [
         'id',
-        'fullUserName',
+        'userName' => [
+            'attribute' => 'fullUserName',
 
+            'value' => function($data){
+                return is_null($data->userName) ? 'Not set' : ($data->fullUserName);
+            },
+
+        ],
         'userAge',
         'userPhone',
 
@@ -41,12 +47,12 @@ $this->registerJsFile('js/backend.js',
 
         'created' => [
             'attribute' => 'created',
-        //    'contentOptions' => ['style' => 'width:100px;'],
+            'contentOptions' => ['style' => 'width:100px;'],
         ],
-        'updated',
+      //  'updated',
         'status' =>
             [
-                'header' => 'Статус',
+                'attribute' => 'status',
                 'format' => 'raw',
                 'value' =>
 
@@ -58,28 +64,19 @@ $this->registerJsFile('js/backend.js',
                     }
             ],
         'score',
-        'recommendation' => [
-            'attribute'=>'sex',
-            'header' => 'Рекоммендация',
+
+        'scoreType' => [
+            'attribute'=>'score_type',
             'format' => 'raw',
             'value' => function ($model) use ($testScoreRecommendations) {
 
-                $type = $model->scoreType;
+                $scoreType = $model->score_type;
 
-                if ($type) {
+                return  Html::tag('p', Html::encode($testScoreRecommendations[$scoreType]['text']),
+                    ['class' => 'label label-' . $testScoreRecommendations[$scoreType]['class'],
+                        'title' => $testScoreRecommendations[$scoreType]['title']
 
-                    $html = Html::tag('p', Html::encode($testScoreRecommendations[$type]['text']),
-                        ['class' => 'label label-' . $testScoreRecommendations[$type]['class'],
-                            'title' => $testScoreRecommendations[$type]['title']
-
-                        ]);
-                } else {
-                    $html = Html::tag('p', '---',
-                        ['class' => 'label label-default',
-                            'title' => 'проверка не проводилась'
-                        ]);
-                }
-                return $html;
+                    ]);
             }
         ],
         'check_group_1' =>
@@ -186,25 +183,17 @@ $this->registerJsFile('js/backend.js',
             }
 
         ],
-        'duration' => [
+        'durationCheck' => [
         'header' => 'Скорость',
         'format' => 'raw',
-'value' => function ($model) use ($testCheckAdequacyLabels,$testCheckHealthLabels) {
+        'value' => function ($model) use ($testDurationLabels) {
 
-    $html =' '. Html::tag('p', 'ok',
-            ['class' => 'label label-primary',
-                'title' =>  'продолжительность теста нормальная'
-            ]);
+            $type = $model->durationCheck;
+             return Html::tag('p', Html::encode($testDurationLabels[$type]['text']),
+                    ['class' => 'label label-'.$testDurationLabels[$type]['class'],
+                        'title' =>  $testDurationLabels[$type]['title']
+                    ]);
 
-    if($model->isPassedTooFast()){
-
-        $html =' '. Html::tag('p', 'быстро',
-                ['class' => 'label label-warning',
-                    'title' =>  'тест пройден слишком быстро'
-                ]);
-    }
-
-    return $html;
 }
 
         ],
@@ -212,18 +201,33 @@ $this->registerJsFile('js/backend.js',
             [
                 'class' => 'yii\grid\ActionColumn',
                 'header' => 'Действия',
-                'template' => '{view}',
+                'template' => '{view}{update}',
                 'buttons' => [
                     'view' => function ($url, $model, $key) {
-                        return Html::button(Html::tag('span','',
+                        return Html::a(Html::tag('span','',
                             ['class'=>'glyphicon glyphicon-search', 'aria-hidden'=>'true']),
+                            '#',
                             [
-                                'class' => 'btn btn-sm btn-primary btn_view_test',
+                                'class' => 'btn_view_test',
                                 'title' => Yii::t('yii', 'Просмотр теста'),
                                 'data-toggle' => 'modal',
                                 'data-target' => '#activity-modal',
                                 'data-id' => $model->id,
-                                'data-url' => \yii::$app->getUrlManager()->createUrl('test/view')
+                                'data-url' => \yii::$app->getUrlManager()->createUrl('test/view'),
+                                'padding' => '5px'
+                            ]);
+                    },
+                'update' => function ($url, $model, $key) {
+                        return Html::a(Html::tag('span','',
+                            ['class'=>'glyphicon glyphicon-pencil', 'aria-hidden'=>'true']),
+                            '#',
+                            [
+                                'class' => 'btn_update_test',
+                                'title' => Yii::t('yii', 'Обновить'),
+                                'data-toggle' => 'modal',
+                                'data-target' => '#activity-modal',
+                                'data-id' => $model->id,
+                                'data-url' => \yii::$app->getUrlManager()->createUrl('test/update')
                             ]);
                     }
 
@@ -239,7 +243,14 @@ Modal::begin([
     'size'=>Modal::SIZE_LARGE,
 ]);
 
-//echo 'Say hello...';
+/*Modal::begin([
+    'id' => 'activity-modal-update',
+    'header' => '<h3 class="modal-title">Редактирование теста</h3>',
+    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Закрыть</a>',
+    'size'=>Modal::SIZE_LARGE,
+]);*/
+
+echo 'Say hello...';
 Modal::end();
 
 ?>

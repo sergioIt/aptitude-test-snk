@@ -14,7 +14,7 @@ use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
 use common\models\Test;
 use common\models\TestResult;
-use common\models\TestUserSearch;
+use common\models\TestSearch;
 use Yii;
 
 class TestController extends Controller
@@ -40,9 +40,8 @@ class TestController extends Controller
         ]);
 
 
-        $searchModel = new TestUserSearch();
-      //  $dataProvider = $searchModel->search(Yii::$app->request->get());
-
+        $searchModel = new TestSearch();
+        $dataProvider->pagination->pageSize=50;
 
         return $this->render('list',
             ['dataProvider' => $dataProvider,
@@ -53,6 +52,7 @@ class TestController extends Controller
                 'testScoreRecommendations' => Test::getRecommendationsLabels(),
                 'testCheckAdequacyLabels' => Test::getCheckAdequacyLabels(),
                 'testCheckHealthLabels' => Test::getCheckHealthLabels(),
+                'testDurationLabels' => Test::getDurationLabels(),
             ]
         );
     }
@@ -91,4 +91,40 @@ class TestController extends Controller
             return false;
         }
     }
+
+    /**
+     * Вызывает модельное окно с данными теста, которые можно редактировать
+     * (комментарий)
+     */
+    public function actionUpdate(){
+
+        if (\Yii::$app->request->isAjax) {
+            $test = null;
+            $err = null;
+            $params = \Yii::$app->request->get();
+
+            if (isset($params['test_id'])) {
+
+            $test = Test::findOne(['id' => $params['test_id']]);
+
+            //$results = TestResult::composeAjaxOutput($results);
+
+        } else {
+                $err = 'тест не найден';
+            }
+            return $this->renderAjax('update',
+                [
+                    //'results' => $results,
+                    'model' => $test,
+                    'error' => $err,
+                ]);
+
+        }
+        else {
+            echo 'not ajax';
+            return false;
+        }
+
+    }
+
 }

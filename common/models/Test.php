@@ -63,7 +63,6 @@ class Test extends \yii\db\ActiveRecord
      */
     const LIMIT_UNWANTED_ANSWERS_CRITERIA_HEALTH = 2;
 
-
     /**
      * статус итогоа проверки 1-ой группы вопросов: пройдена
      */
@@ -78,12 +77,19 @@ class Test extends \yii\db\ActiveRecord
     const MAX_POSSIBLE_SCORE = 84;
 
     // типы людей исходя из общего балла
-    const SCORE_TYPE_BAD = 'bad';
-    const SCORE_TYPE_DOUBTER = 'doubter';
-    const SCORE_TYPE_INCLINED_TO_DOUBT = 'inclined_to_doubt';
-    const SCORE_TYPE_GOOD = 'good';
-    const SCORE_TYPE_CRAFTY = 'crafty';
-
+    // "не подоходит"
+    const SCORE_TYPE_BAD = 1;
+    // "сомневающийся"
+    const SCORE_TYPE_DOUBTER = 2;
+    // склонен к сомневающимуся
+    const SCORE_TYPE_INCLINED_TO_DOUBT = 3;
+    // "подходит"
+    const SCORE_TYPE_GOOD = 4;
+    // "хитрый" (слишком правильно ответил)
+    const SCORE_TYPE_CRAFTY = 5;
+    // специальный тип на случай, если проверка ещё не проводилась
+    const SCORE_TYPE_UNDEFINED = 0;
+    // временная зона для сохранения дат
     const TIMEZONE = 'Europe/Moscow';
 
     /**
@@ -100,6 +106,19 @@ class Test extends \yii\db\ActiveRecord
      * если меньше, то появится предпреждение
      */
     const TEST_DURATION_MINIMUM_MINUTES = 8;
+
+    /**
+     * Статус проверки теста на продолжительность: нормальный
+     */
+    const TEST_DURATION_STATUS_CHECK_OK = 1;
+    /**
+     * Статус проверки теста на продолжительность: не проводилась
+     */
+    const TEST_DURATION_STATUS_EMPTY = 0;
+    /**
+     * Статус проверки теста на продолжительность: слишком быстро
+     */
+    const TEST_DURATION_STATUS_CHECK_WARNING = 2;
 
     /**
      * массив соответствий границ, в которые попал общий балл,
@@ -148,6 +167,8 @@ class Test extends \yii\db\ActiveRecord
             ]
     ];
 
+    //private $durationCheck;
+
     /**
      * @inheritdoc
      */
@@ -178,7 +199,8 @@ class Test extends \yii\db\ActiveRecord
             // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
             [['check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'in',
                 'range' => [self::STATUS_CHECK_GROUP_TRUE, self::STATUS_CHECK_GROUP_FALSE]],
-            ['fullUserName','safe']
+            ['score_type', 'integer', 'min' => self::SCORE_TYPE_BAD, 'max' => self::SCORE_TYPE_CRAFTY]
+           // ['fullUserName','safe']
 
         ];
     }
@@ -196,9 +218,13 @@ class Test extends \yii\db\ActiveRecord
             'status' => 'Статус',
             'deny_reason' => 'Причина отказа',
             'score' => 'Общий балл',
+            'userName' => 'Имя',
             'fullUserName' => 'Имя',
             'userPhone' => 'Телефон',
-            'userAge' => 'Возраст'
+            'userAge' => 'Возраст',
+            'durationCheck' => 'Скорость',
+            //'recommendation' => 'Рекомендация',
+            'score_type' => 'Рекомендация'
         ];
     }
 
@@ -241,6 +267,13 @@ class Test extends \yii\db\ActiveRecord
      * Получает полное имя кандидата
      * @return string
      */
+    public function getUserName(){
+
+       // return $this->user->name . ' '.$this->user->surname;
+        return $this->user->name;
+
+    }
+
     public function getFullUserName(){
 
         return $this->user->name . ' '.$this->user->surname;
@@ -292,16 +325,52 @@ class Test extends \yii\db\ActiveRecord
     }
 
     /**
+     * Проверяет, закончен ли тест (по статусу)
+     * @return bool
+     */
+    public function isTestFinished(){
+
+        return $this->status >= self::STATUS_FINISHED;
+    }
+
+    /**
      * получает продолжительность теста в минутах
      */
     public function getTestDuration(){
 
-        if($this->status > self::STATUS_DEFAULT){
+        if($this->status >= self::STATUS_FINISHED){
 
             return (new \DateTime($this->created))->diff(new \DateTime($this->updated))->i;
         }
 
         return false;
+    }
+
+    /**
+     * Получает результат проверки на продолжительность теста
+     */
+    public function getDurationCheck(){
+
+        $checkType = null;
+
+        if(! $this->isTestFinished()){
+
+            $checkType = self::TEST_DURATION_STATUS_EMPTY;
+        }
+        else{
+
+            if($this->isPassedTooFast()){
+
+                $checkType = self::TEST_DURATION_STATUS_CHECK_WARNING;
+            }
+            else{
+                $checkType = self::TEST_DURATION_STATUS_CHECK_OK;
+            }
+
+        }
+
+        return $checkType;
+
     }
 
     /**
@@ -583,6 +652,30 @@ class Test extends \yii\db\ActiveRecord
     }
 
     /**
+     * Определяет тип балла по числа баллов
+     * используется в миграции при запаолнеии поля score_type
+     *
+     * @param $score
+     * @return int
+     */
+    public static function getScoreTypeByScore($score)
+    {
+
+        foreach (self::$scoreTypes as $type => $range) {
+
+            if ($range['min'] <= $score && $score <= $range['max']) {
+
+                return $type;
+
+            }
+
+        }
+        // тип должен обязательно определиться, но если почему-то этого не произошло
+        // то оставляем тип по умолчанию (не определённый)
+        return self::SCORE_TYPE_UNDEFINED;
+    }
+
+    /**
      * Возвращает массив соответствий статусов теста
      * и данных для их рендеринга в списке тестов
      * @return array
@@ -667,8 +760,9 @@ class Test extends \yii\db\ActiveRecord
             self::SCORE_TYPE_CRAFTY=> ['class' => 'warning', 'text' => 'хитрый?', 'title' => 'Рекомендация: Внимание! Кандидат
 набрал максимальное количество баллов по тесту. Стоит приглядеться к нему повнимательнее, возможно, что его хитрость проявится позднее и в других
 ситуациях в работе!'],
-
-        ];
+            self::SCORE_TYPE_UNDEFINED => ['class' => 'default', 'text' => '--', 'title' => 'проверка не проводилась'
+        ]
+            ];
     }
 
     /**
@@ -705,6 +799,19 @@ class Test extends \yii\db\ActiveRecord
 индивидуальный разговор по предстоящим переездам при очном собеседовании
 или по телефону'],
         ];
+    }
+
+    /**
+     *  Возвращает массив соответствий ярлыков для проверки времени прохолждения теста
+     * @return array
+     */
+    public static function getDurationLabels(){
+        return [
+            self::TEST_DURATION_STATUS_EMPTY => ['class' => 'default', 'text' => '--', 'title' => 'провека не проводилась'],
+            self::TEST_DURATION_STATUS_CHECK_OK => ['class' => 'primary', 'text' => 'ок', 'title' => 'продолжительность теста нормальная'],
+            self::TEST_DURATION_STATUS_CHECK_WARNING => ['class' => 'warning', 'text' => 'быстро', 'title' => 'тест пройден слишком быстро'],
+        ];
+
     }
 
 
