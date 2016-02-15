@@ -8,6 +8,7 @@
 
 namespace backend\controllers;
 
+use backend\models\TestComment;
 use common\models\TestUser;
 use yii\web\Controller;
 use yii\helpers\Url;
@@ -105,9 +106,9 @@ class TestController extends Controller
 
             if (isset($params['test_id'])) {
 
-            $test = Test::findOne(['id' => $params['test_id']]);
-
-            //$results = TestResult::composeAjaxOutput($results);
+            $test = Test::find(['id' => $params['test_id']])->one();
+            //    $test->getC
+            //$test = Test::find(['id' => $params['test_id']])->with('comments')->asArray()->one();
 
         } else {
                 $err = 'тест не найден';
@@ -115,7 +116,7 @@ class TestController extends Controller
             return $this->renderAjax('update',
                 [
                     //'results' => $results,
-                    'model' => $test,
+                    'test' => $test,
                     'error' => $err,
                 ]);
 
@@ -125,6 +126,38 @@ class TestController extends Controller
             return false;
         }
 
+    }
+
+    public function actionSavecomment(){
+
+        if (\Yii::$app->request->isAjax) {
+
+            $data = Yii::$app->request->post();
+
+            $testComment = new TestComment();
+            $testComment->test_id = $data['test_id'];
+            $testComment->user_id = $data['user_id'];
+            $testComment->text = $data['text'];
+
+         //   if ($test) {
+          //      $test->deny_reason = $data['deny_reason'];
+                if($testComment->save()){
+
+                    echo 'saved';
+                }
+            else{
+
+                var_dump($testComment->errors);
+            }
+           // }
+
+        }
+        else{
+
+            echo 'not ajax';
+        }
+
+        return false;
     }
 
 }

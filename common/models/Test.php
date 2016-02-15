@@ -10,6 +10,8 @@ namespace common\models;
 
 use Yii;
 use frontend\models;
+use backend\models\TestComment;
+
 use yii\data\ActiveDataProvider;
 
 //use Faker\Provider\DateTime;
@@ -261,6 +263,16 @@ class Test extends \yii\db\ActiveRecord
     public function getUser()
     {
         return $this->hasOne(TestUser::className(), ['id' => 'user_id']);
+    }
+
+    /**
+     * Получает все комменты для теста
+     * 
+     * @return \yii\db\ActiveQuery
+     */
+    public function getComments()
+    {
+        return $this->hasMany(TestComment::className(), ['test_id' => 'id']);
     }
 
     /**

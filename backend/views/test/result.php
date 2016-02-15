@@ -8,7 +8,8 @@
  * Результат теста - вопроса и ответы по отдельному тесту
  */
 //use yii\base\view;
-
+use yii\helpers\Html;
+use backend\models\User;
 ?>
 <? if (isset($err)) {
     echo $err;
@@ -17,7 +18,34 @@
     ?>
 
     <h4> Результаты теста #<?=$test->id?></h4>
+
+    <div id="comments_result" class="row">
+        <h2>Комментарии</h2>
+    <?    if (! empty($test->comments)) {
+
+        foreach($test->comments as $comment){
+        ?>
+        <div class="comment col-md-8">
+            <?=
+            Html::tag('p',User::findOne(['id' => $comment->user_id])->username, ['class' => 'label label-primary']);
+            ?>
+            <?=
+            Html::tag('p',$comment->created, ['class' => 'label label-primary']);
+            ?>
+
+            <?= $comment->text; ?>
+
+        </div>
+        <?
+        }
+        }
+     ?>
+        <br>
+    </div>
+    <hr>
+    <div id="results">
     <? foreach ($results as $result){ ?>
+
 
   <h2> Вопрос <?=$result['question_id'] ?> </h2>
        <h3> <?= $result['question']['text']; ?></h3>
@@ -56,7 +84,7 @@
         ?>
         </h3><hr>
     <?}?>
-
+    </div>
 <!--    --><?// var_dump($results); ?>
 <?
 }
