@@ -14,11 +14,26 @@ $(document).ready(function () {
 
 
     Aptitude.Backend.processAddComment();
+    Aptitude.Backend.processUpdateUserStatus();
 
+    Aptitude.Backend.processUpdateBlocksToggle();
 
 
 
 });
+
+/**
+ * обрабатывает переключение видимости блоков редактирования теста
+ */
+Aptitude.Backend.processUpdateBlocksToggle = function(){
+
+    $(document).on("click", '#comments_toggle', function (){
+
+       $('#comments').toggle();
+
+    });
+
+};
 
 /**
  * Вызывает окно просмотра результатов теста
@@ -49,9 +64,6 @@ Aptitude.Backend.updateTest = function() {
 
         var url = $(this).data('url');
 
-       // console.log('url: ' + url);
-       // console.log('id: ' + $(this).data('id'));
-
         $.get(
             url,
             {
@@ -69,7 +81,9 @@ Aptitude.Backend.updateTest = function() {
     });
 
 };
-
+/**
+ * сбрасывает в начальное сосотяние окно для update
+ */
 Aptitude.Backend.initModalState = function(){
 
     Aptitude.Backend.disableAddCommentButton();
@@ -78,6 +92,9 @@ Aptitude.Backend.initModalState = function(){
 
 
 };
+/**
+ * обработка добавления коммента к тесту
+ */
 Aptitude.Backend.processAddComment = function(){
 
 
@@ -95,29 +112,79 @@ Aptitude.Backend.processAddComment = function(){
     });
 
 };
+/**
+ * обработка изменения статуса кандидата
+ */
+Aptitude.Backend.processUpdateUserStatus = function(){
 
+    $(document).on("click", '#btn_update_status', function (){
+
+        Aptitude.Backend.updateUserStatus();
+
+    });
+};
+/**
+ * обновляет стаутс кандидата на сервере
+ */
+Aptitude.Backend.updateUserStatus = function(){
+
+    var data = Aptitude.Backend.getUserStatusData();
+   // console.log('status data:' + data);
+    $.ajax({
+        type: "POST",
+        url: 'test/updateuserstatus',
+        data: data,
+        success: function (response) {
+            // рендерим следующий вопрос
+            console.log(response);
+          if(response == 1)
+          {
+              Aptitude.Backend.showSuccessAlert('status');
+          }
+        }
+    });
+
+};
+/**
+ * включает кнопку добавления комментария
+ */
 Aptitude.Backend.enableAddCommentButton = function(){
     $(document).find('#btn_add_comment').prop('disabled', false);
 
 };
-
+/**
+ * отключает кнопку добавление комментария
+ */
 Aptitude.Backend.disableAddCommentButton = function(){
     $(document).find('#btn_add_comment').prop('disabled', true);
 };
-
+/**
+ * скрывает все уведомления
+ */
 Aptitude.Backend.hideAlerts = function(){
     $(document).find('#alert_comment_added').hide();
+    $(document).find('#alert_status_changed').hide();
 
 };
-
+/**
+ * очищает поля для комментария
+ */
 Aptitude.Backend.emptyCommentFiled = function(){
 
     $(document).find('#comment_field').val('');
 };
-
-Aptitude.Backend.showSuccessAlert = function(){
-
-    $(document).find('#alert_comment_added').show();
+/**
+ * показывает уведомление об успешном обновлении
+ */
+Aptitude.Backend.showSuccessAlert = function(type){
+    var alert;
+    if(type == 'comment'){
+            alert = $(document).find('#alert_comment_added');
+    }
+    if(type == 'status'){
+        alert = $(document).find('#alert_status_changed');
+    }
+    alert.show();
     setTimeout(function() {
 
         Aptitude.Backend.initModalState();
@@ -139,6 +206,18 @@ Aptitude.Backend.getCommentData = function(){
     };
 };
 /**
+ *  Получает данные для изменения статуса кандидата
+ *
+ * @returns {{user_id: (*|jQuery), status: (*|jQuery)}}
+ */
+Aptitude.Backend.getUserStatusData = function(){
+    return  {
+        user_id: $(document).find('#btn_update_status').data('user_id'),
+        status: $(document).find('#test_user_status_dropdown').val()
+    };
+
+};
+/**
  * Сохраняет комметарий к тесту
  */
 Aptitude.Backend.addComment = function(){
@@ -152,7 +231,7 @@ Aptitude.Backend.addComment = function(){
         success: function (response) {
             // рендерим следующий вопрос
             console.log(response);
-            Aptitude.Backend.showSuccessAlert();
+            Aptitude.Backend.showSuccessAlert('comment');
             //$(document).find('#comments').append('<span class="label label-primary">sdfsdfdsfds</span>');
         }
     });

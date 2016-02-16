@@ -36,15 +36,29 @@ class TestUser extends \yii\db\ActiveRecord
      * статус пользователя: зарегистрировался, перешёл к тесту
      */
     const STATUS_DEFAULT = 0;
-    /**
-     * статус пользователя: ответил на часть вопросов
-     */
-    const STATUS_NOT_FINISHED = 1;
+
+    const STATUS_DEFAULT_NAME = 'зарегистрирован';
 
     /**
-     * статус пользователя: ответил на все вопросы
+     * статус пользователя: на рассмотрении
      */
-    const STATUS_FINISHED = 2;
+    const STATUS_UNDER_CONSIDERATION = 1;
+
+    const STATUS_UNDER_CONSIDERATION_NAME = 'на рассмотрении';
+
+    /**
+     * статус пользователя: принят (на работу)
+     */
+    const STATUS_ACCEPTED = 2;
+
+    const STATUS_ACCEPTED_NAME = 'принят';
+
+    /**
+     * статус пользователя: отклонён
+     */
+    const STATUS_DECLINED = 3;
+
+    const STATUS_DECLINED_NAME = 'отклонён';
 
     /**
      * минимально допустимый возраст кандидата
@@ -65,7 +79,8 @@ class TestUser extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'surname', 'patronymic', 'phone', 'date_of_birth' ], 'required'],
-            [['status'], 'integer'],
+            [['status'], 'integer', 'integerOnly' => true],
+            [['status'], 'in', 'range' => range(self::STATUS_DEFAULT,self::STATUS_DECLINED)],
             [['name'], 'string', 'max' => 100],
             [['surname', 'patronymic'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 16],
@@ -101,6 +116,17 @@ class TestUser extends \yii\db\ActiveRecord
         }
     }
 
+    public static function getAllStatuses(){
+
+        return [
+            self::STATUS_DEFAULT => self::STATUS_DEFAULT_NAME,
+            self::STATUS_UNDER_CONSIDERATION => self::STATUS_UNDER_CONSIDERATION_NAME,
+            self::STATUS_ACCEPTED => self::STATUS_ACCEPTED_NAME,
+            self::STATUS_DECLINED => self::STATUS_DECLINED_NAME,
+
+        ];
+
+    }
     /**
      * Очищает номер, оставляя только цифры
      * @param $phone
@@ -118,8 +144,12 @@ class TestUser extends \yii\db\ActiveRecord
      */
     public function beforeSave()
     {
-        $this->created = (new \DateTime())->format('Y-m-d H:i:s');
-        $this->phone = self::clearPhone($this->phone);
+        if ($this->isNewRecord) {
+            $this->created = (new \DateTime())->format('Y-m-d H:i:s');
+            $this->phone = self::clearPhone($this->phone);
+        }
+
+
         return true;
     }
 
