@@ -8,11 +8,19 @@
 
 namespace common\models;
 
+use Monolog\Handler\PHPConsoleHandler;
 use Yii;
 use frontend\models;
 use backend\models\TestComment;
 
 use yii\data\ActiveDataProvider;
+
+use Monolog\Logger;
+use Monolog\Handler\SwiftMailerHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\ChromePHPHandler;
+
+//use Swift_Mailer;
 
 //use Faker\Provider\DateTime;
 
@@ -498,9 +506,18 @@ class Test extends \yii\db\ActiveRecord
             $test->processCheckHealth();
 
         }
+        // если что-то пошло не так - добавляем лог в файл и консоль chrome
+        // @todo добавить отправку на почту, т.к. это критическая ошибка
 
-        $test->save();
-        var_dump($test->errors);
+        if (! $test->update()){
+
+            $logger = new Logger('aptitude-frontend');
+
+            $logger->pushHandler(new StreamHandler(__DIR__.'/../../frontend/runtime/logs/critical.log', Logger::CRITICAL));
+            $logger->pushHandler(new ChromePHPHandler());
+
+            $logger->critical('test update fails',$test->errors);
+        }
     }
 
     /**

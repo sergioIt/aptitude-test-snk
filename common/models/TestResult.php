@@ -10,6 +10,12 @@ namespace common\models;
 
 use Yii;
 use yii\helpers\Html;
+
+use Monolog\Logger;
+use Monolog\Handler\SwiftMailerHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\ChromePHPHandler;
+
 /**
  * This is the model class for table "test_result".
  *
@@ -131,7 +137,13 @@ class TestResult extends \yii\db\ActiveRecord
                 $result->answer_id = $answerId;
 
                 if(! $result->save()){
-                    $saved = false;
+
+                    $logger = new Logger('aptitude-frontend');
+
+                    $logger->pushHandler(new StreamHandler(__DIR__.'/../../frontend/runtime/logs/critical.log', Logger::CRITICAL));
+                    $logger->pushHandler(new ChromePHPHandler());
+
+                    $logger->critical('test result save fails',$result->errors);
                 }
 
             }
