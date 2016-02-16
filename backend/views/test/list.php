@@ -95,7 +95,10 @@ $this->registerJsFile('js/backend.js',
         ],
         'check_group_1' =>
             [
-                'header' => 'Проверка 1 <br> (на ложь)',
+                'attribute' => 'check_group_1',
+                'label' => 'check1',
+
+               // 'header' => 'Проверка 1 <br> (на ложь)',
                 'format' => 'raw',
                 'value' => function ($model) use ($testCheckResultsLabels) {
 
@@ -118,7 +121,9 @@ $this->registerJsFile('js/backend.js',
             ],
         'check_group_2' =>
             [
-                'header' => 'Проверка 2 <br> (на ложь)',
+                'attribute' => 'check_group_2',
+                //'header' => 'Проверка 2 <br> (на ложь)',
+                'label' => 'check2',
                 'format' => 'raw',
                 'value' => function ($model) use ($testCheckResultsLabels) {
 
@@ -140,7 +145,9 @@ $this->registerJsFile('js/backend.js',
             ],
         'check_group_3' =>
             [
-                'header' => 'Проверка 3 <br> (неопределённость)',
+                'attribute' => 'check_group_3',
+                //'header' => 'Проверка 3 <br> (неопределённость)',
+                'label' => 'check3',
                 'format' => 'raw',
                 'value' => function ($model) use ($testCheckResultsLabelsForGroup3) {
 
@@ -162,9 +169,9 @@ $this->registerJsFile('js/backend.js',
                 }
             ],
         'additional_notify' => [
-            'header' => 'Нежелательные <br> ответы',
+            'header' => 'Дополнительные <br> проверки',
             'format' => 'raw',
-            'value' => function ($model) use ($testCheckAdequacyLabels,$testCheckHealthLabels) {
+            'value' => function ($model) use ($testCheckAdequacyLabels,$testCheckHealthLabels, $testDurationLabels) {
 
                 $html = '';
                 //$labelAdequacy = '';
@@ -193,11 +200,19 @@ $this->registerJsFile('js/backend.js',
                         ]);
                 }
 
+                if(isset($model->durationCheck)){
+
+                    $html .= ' '. Html::tag('p', Html::encode($testDurationLabels[$model->durationCheck]['text']),
+                        ['class' => 'label label-'.$testDurationLabels[$model->durationCheck]['class'],
+                            'title' =>  $testDurationLabels[$model->durationCheck]['title']
+                        ]);
+                }
+
                 return $html;
             }
 
         ],
-        'durationCheck' => [
+/*        'durationCheck' => [
         'header' => 'Скорость',
         'format' => 'raw',
         'value' => function ($model) use ($testDurationLabels) {
@@ -210,7 +225,7 @@ $this->registerJsFile('js/backend.js',
 
 }
 
-        ],
+        ],*/
         'actions' =>
             [
                 'class' => 'yii\grid\ActionColumn',
