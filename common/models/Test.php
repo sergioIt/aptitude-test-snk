@@ -505,6 +505,8 @@ class Test extends \yii\db\ActiveRecord
             //проверка на здоровье
             $test->processCheckHealth();
 
+            $test->setScoreType();
+
         }
         // если что-то пошло не так - добавляем лог в файл и консоль chrome
         // @todo добавить отправку на почту, т.к. это критическая ошибка
@@ -662,29 +664,15 @@ class Test extends \yii\db\ActiveRecord
     }
 
     /**
-     *  Получает рекомендацию, исходя из общего балла
+     *  Задает занчение score_type,
+     * по которому строится рекомендация для действий с кандидатом
      *
      * @return string|bool
      */
-    public function getScoreType()
+    public function setScoreType()
     {
 
-        if ($this->status >= self::STATUS_FINISHED) {
-
-            // проверка на то, что общий балл попал в какой-то дапазон типов
-            foreach (self::$scoreTypes as $type => $range) {
-
-                if ($range['min'] <= $this->score && $this->score <= $range['max']) {
-
-                    return $type;
-
-                }
-
-            }
-
-        }
-
-        return false;
+        $this->score_type = self::getScoreTypeByScore($this->score);
     }
 
     /**
