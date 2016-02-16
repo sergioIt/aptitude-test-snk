@@ -10,9 +10,10 @@ use yii\bootstrap\ActiveForm;
 use backend\models\User;
 ?>
 
-<h2>Комментарии к тесту</h2>
-<div id="comments" class="row">
+<h2 id="comments_toggle">Комментарии к тесту</h2>
 
+<div id="comments">
+<div class="row">
 
 
 <?
@@ -54,8 +55,25 @@ if (! empty($test->comments)) {
 
 
 </div>
+    </div>
 
-    <div id="alert_comment_added" class="alert alert-success">Комментрий добавлен</div>
-<?
 
-//var_dump($test);
+
+
+<h2>Статус кандидата</h2>
+
+<div id="user_status_set">
+
+    <div class="form-group">
+
+        <?= Html::dropDownList('statuses',$test->user->status,$userStatuses,['id'=>'test_user_status_dropdown']); ?>
+        <?=  Html::button('изменить статус',
+            ['id'=>'btn_update_status',
+              //  'data-test_id' => $test->id,
+                'data-user_id' => $test->user->id,
+                'class' => 'btn btn-sm btn-success']); ?>
+</div>
+
+</div>
+<div id="alert_comment_added" class="alert alert-success">Комментрий добавлен</div>
+<div id="alert_status_changed" class="alert alert-success">Статус кандидата изменён</div>

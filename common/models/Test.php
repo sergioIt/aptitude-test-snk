@@ -225,8 +225,8 @@ class Test extends \yii\db\ActiveRecord
             'userPhone' => 'Телефон',
             'userAge' => 'Возраст',
             'durationCheck' => 'Скорость',
-            //'recommendation' => 'Рекомендация',
-            'score_type' => 'Рекомендация'
+            'score_type' => 'Рекомендация',
+            'userStatus' => 'Статус кандидата'
         ];
     }
 
@@ -267,7 +267,7 @@ class Test extends \yii\db\ActiveRecord
 
     /**
      * Получает все комменты для теста
-     * 
+     *
      * @return \yii\db\ActiveQuery
      */
     public function getComments()
@@ -281,9 +281,16 @@ class Test extends \yii\db\ActiveRecord
      */
     public function getUserName(){
 
-       // return $this->user->name . ' '.$this->user->surname;
         return $this->user->name;
+    }
 
+    /**
+     * Получает статус пользователя теста (кандидата)
+     * @return int
+     */
+    public function getUserStatus(){
+
+        return $this->user->status;
     }
 
     public function getFullUserName(){
@@ -824,6 +831,26 @@ class Test extends \yii\db\ActiveRecord
             self::TEST_DURATION_STATUS_CHECK_WARNING => ['class' => 'warning', 'text' => 'быстро', 'title' => 'тест пройден слишком быстро'],
         ];
 
+    }
+
+    /**
+     *  Возвращает массив соответствий ярлыков статуса кандидата
+     * @return array
+     */
+    public static function getUserStatusLabels(){
+
+        return [
+
+            TestUser::STATUS_DEFAULT =>
+                ['class' => 'default', 'text' => TestUser::STATUS_DEFAULT_NAME, 'title' => 'кандидат ещё не рассматривался'],
+            TestUser::STATUS_UNDER_CONSIDERATION =>
+                ['class' => 'warning', 'text' => TestUser::STATUS_UNDER_CONSIDERATION_NAME, 'title' => 'кандидат находится  в стадии рассмотрения'],
+            TestUser::STATUS_ACCEPTED =>
+                ['class' => 'success', 'text' => TestUser::STATUS_ACCEPTED_NAME, 'title' => 'принятно решение принять кандидата на работу'],
+            TestUser::STATUS_DECLINED =>
+                ['class' => 'danger', 'text' => TestUser::STATUS_DECLINED_NAME, 'title' => 'принятно решение отклонить кандидата'],
+
+        ];
     }
 
 

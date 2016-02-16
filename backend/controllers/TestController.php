@@ -54,6 +54,7 @@ class TestController extends Controller
                 'testCheckAdequacyLabels' => Test::getCheckAdequacyLabels(),
                 'testCheckHealthLabels' => Test::getCheckHealthLabels(),
                 'testDurationLabels' => Test::getDurationLabels(),
+                'userStatusLabels' => Test::getUserStatusLabels(),
             ]
         );
     }
@@ -107,17 +108,15 @@ class TestController extends Controller
             if (isset($params['test_id'])) {
 
             $test = Test::find(['id' => $params['test_id']])->one();
-            //    $test->getC
-            //$test = Test::find(['id' => $params['test_id']])->with('comments')->asArray()->one();
 
         } else {
                 $err = 'тест не найден';
             }
             return $this->renderAjax('update',
                 [
-                    //'results' => $results,
                     'test' => $test,
                     'error' => $err,
+                    'userStatuses' =>  TestUser::getAllStatuses(),
                 ]);
 
         }
@@ -128,6 +127,11 @@ class TestController extends Controller
 
     }
 
+    /**
+     * Сохраняет комментарий к тесту в базе
+     *
+     * @return bool
+     */
     public function actionSavecomment(){
 
         if (\Yii::$app->request->isAjax) {
@@ -139,18 +143,12 @@ class TestController extends Controller
             $testComment->user_id = $data['user_id'];
             $testComment->text = $data['text'];
 
-         //   if ($test) {
-          //      $test->deny_reason = $data['deny_reason'];
                 if($testComment->save()){
-
                     echo 'saved';
                 }
             else{
-
                 var_dump($testComment->errors);
             }
-           // }
-
         }
         else{
 
@@ -158,6 +156,36 @@ class TestController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Обновляет статус кандидата в базе
+     */
+    public function actionUpdateuserstatus()
+    {
+
+        if (\Yii::$app->request->isAjax) {
+            $data = Yii::$app->request->post();
+
+            $testUser = TestUser::findOne($data['user_id']);
+
+            $testUser->status = $data['status'];
+
+            $updated = $testUser->update();
+
+            if ($updated !== false){
+
+                echo $updated;
+            }
+            else{
+                echo 'err';
+            }
+
+        }
+        else{
+
+            echo 'not ajax';
+        }
     }
 
 }

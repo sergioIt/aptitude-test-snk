@@ -93,3 +93,6 @@ a.desc:after {
 #alert_comment_added{
     display: none;
 }
+#comments_toggle{
+    cursor: pointer;
+}

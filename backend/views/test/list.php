@@ -30,6 +30,20 @@ $this->registerJsFile('js/backend.js',
             },
 
         ],
+        'userStatus' => [
+            'header' => 'Статус <br> кандидата',
+            'label' => 'label',
+            'format' => 'raw',
+            'value' =>
+                function ($model, $key, $index, $column) use ($userStatusLabels) {
+
+                    return Html::tag('p', Html::encode($userStatusLabels[$model->userStatus]['text']),
+                        [
+                            'class' => 'label label-' . $userStatusLabels[$model->userStatus]['class'],
+                            'title' =>  $userStatusLabels[$model->userStatus]['title']
+                        ]);
+                }
+        ],
         'userAge',
         'userPhone',
 
