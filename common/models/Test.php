@@ -201,8 +201,7 @@ class Test extends \yii\db\ActiveRecord
             // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
             [['check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'in',
                 'range' => [self::STATUS_CHECK_GROUP_TRUE, self::STATUS_CHECK_GROUP_FALSE]],
-            ['score_type', 'integer', 'min' => self::SCORE_TYPE_BAD, 'max' => self::SCORE_TYPE_CRAFTY]
-           // ['fullUserName','safe']
+            ['score_type', 'integer']
 
         ];
     }
@@ -501,6 +500,7 @@ class Test extends \yii\db\ActiveRecord
         }
 
         $test->save();
+        var_dump($test->errors);
     }
 
     /**
