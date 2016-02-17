@@ -210,17 +210,13 @@ class Test extends \yii\db\ActiveRecord
     private static $recommendationsByScoreType = [
 
         self::SCORE_TYPE_UNDEFINED => 'тип кандидата не определён, рекомендация по типа не определена (возможно, тест не закончен)',
-        self::SCORE_TYPE_BAD => 'отказать в рассмотрении данной кандидатуры на
-место',
-        self::SCORE_TYPE_DOUBTER => 'Данный кандидат, похоже, еще не
-совсем определился, нужна ему эта работа или нет. Рекомендация к более
-пристальному и внимательному разговору с данным кандидатом по телефону
-или во время очного интервью. Более внимательное отношение к деталям
-предстоящей работы, описание всех сложностей, с которыми придется
-столкнуться в процессе работы сварщиком. Несколько раз “в упор” спросить о
-готовности, поговорить об ответственности сторон и дать время подумать,
-взвесить решение”. При прочих равных условиях отдать предпочтение
-кандидату, набравшему больше баллов.',
+        self::SCORE_TYPE_BAD => 'отказать в рассмотрении данной кандидатуры на место',
+        self::SCORE_TYPE_DOUBTER => 'Данный кандидат, похоже, еще не совсем определился, нужна ему эта работа или нет.
+        Рекомендация к более пристальному и внимательному разговору с данным кандидатом по телефону или во время очного интервью.
+        Более внимательное отношение к деталям предстоящей работы, описание всех сложностей, с которыми придется
+столкнуться в процессе работы сварщиком. Несколько раз “в упор” спросить о готовности,
+поговорить об ответственности сторон и дать время подумать,
+взвесить решение”. При прочих равных условиях отдать предпочтение кандидату, набравшему больше баллов.',
         self::SCORE_TYPE_INCLINED_TO_DOUBT => 'Кандидат скорее
 тяготеет к “сомневающемуся типу”, - соответственно, от него можно ожидатьизменения решения в ту или иную сторону в любой момент. Если есть
 возможность, отложите рассмотрение данной кандидатуры на время, не
@@ -235,6 +231,29 @@ class Test extends \yii\db\ActiveRecord
 
     ];
     /**
+     * @var array
+     */
+    private static $recommendationsByGroupCheck = [
+
+        self::CHECK_GROUP_1 => [
+            self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+            self::STATUS_CHECK_GROUP_FALSE => 'подозрение на ложь',
+            self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на ложь',
+        ],
+        self::CHECK_GROUP_2 => [
+            self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+            self::STATUS_CHECK_GROUP_FALSE => 'подозрение на ложь',
+            self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на ложь',
+        ],
+        self::CHECK_GROUP_3 => [
+            self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+            self::STATUS_CHECK_GROUP_FALSE => 'подозрение на проблемы с неопределённостью',
+            self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на проблемы с неопределённостью',
+        ],
+    ];
+
+    /**
+     * Рекомендауции по результатам проверки на адекватность по нежелательным вопросам
      *
      * @var array
      */
@@ -249,7 +268,11 @@ class Test extends \yii\db\ActiveRecord
 что его ожидают и снова спросить о его готовности во всем этом участвовать',
 
     ];
-
+    /**
+     * Рекомендауции по результатам проверки на здоровье по нежелательным вопросам
+     *
+     * @var array
+     */
     private static $recommendationsByHealthCheck = [
 
         self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
@@ -841,20 +864,32 @@ class Test extends \yii\db\ActiveRecord
         // в зависимости от номера проверочной группы возвращаем массив соответствий
         switch ($checkGroupId) {
 
-            case 1:
+            case self::CHECK_GROUP_1:
                 return [
-                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на ложь'],
-                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
+                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок',
+                        'title' => self::$recommendationsByGroupCheck[self::CHECK_GROUP_1][self::STATUS_CHECK_GROUP_TRUE]
+                    ],
+                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь',
+                        'title' => self::$recommendationsByGroupCheck[self::CHECK_GROUP_1][self::STATUS_CHECK_GROUP_FALSE]
+                    ],
+                    ];
+            case self::CHECK_GROUP_2:
+                return [
+                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок',
+                        'title' => self::$recommendationsByGroupCheck[self::CHECK_GROUP_2][self::STATUS_CHECK_GROUP_TRUE]
+                    ],
+                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь',
+                        'title' => self::$recommendationsByGroupCheck[self::CHECK_GROUP_2][self::STATUS_CHECK_GROUP_FALSE]
+                    ],
                 ];
-            case 2:
+            case self::CHECK_GROUP_3:
                 return [
-                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на ложь'],
-                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'danger', 'text' => 'ложь', 'title' => 'подозрение на ложь'],
-                ];
-            case 3:
-                return [
-                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы с неопредёлнностью'],
-                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'неопределённость', 'title' => 'подозрение на проблемы с неопредёлнностью'],
+                    self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок',
+                        'title' => self::$recommendationsByGroupCheck[self::CHECK_GROUP_3][self::STATUS_CHECK_GROUP_TRUE]
+                    ],
+                    self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'неопределённость',
+                        'title' => self::$recommendationsByGroupCheck[self::CHECK_GROUP_3][self::STATUS_CHECK_GROUP_FALSE]
+                    ],
                 ];
 
 
@@ -874,18 +909,24 @@ class Test extends \yii\db\ActiveRecord
 
         return [
 
-            self::SCORE_TYPE_BAD => ['class' => 'danger', 'text' => 'не подходит', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_BAD]],
-            self::SCORE_TYPE_DOUBTER => ['class' => 'warning', 'text' => 'сомневающийся', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_DOUBTER]],
-            self::SCORE_TYPE_INCLINED_TO_DOUBT => ['class' => 'warning', 'text' => 'скорее сомневающийся', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_INCLINED_TO_DOUBT]],
-            self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит', 'title' =>  self::$recommendationsByScoreType[self::SCORE_TYPE_GOOD]],
-            self::SCORE_TYPE_CRAFTY=> ['class' => 'warning', 'text' => 'хитрый?', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_CRAFTY]],
-            self::SCORE_TYPE_UNDEFINED => ['class' => 'default', 'text' => '--', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_UNDEFINED]
+            self::SCORE_TYPE_BAD => ['class' => 'danger', 'text' => 'не подходит',
+                'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_BAD]],
+            self::SCORE_TYPE_DOUBTER => ['class' => 'warning', 'text' => 'сомневающийся',
+                'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_DOUBTER]],
+            self::SCORE_TYPE_INCLINED_TO_DOUBT => ['class' => 'warning', 'text' => 'скорее сомневающийся',
+                'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_INCLINED_TO_DOUBT]],
+            self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит',
+                'title' =>  self::$recommendationsByScoreType[self::SCORE_TYPE_GOOD]],
+            self::SCORE_TYPE_CRAFTY=> ['class' => 'warning', 'text' => 'хитрый?',
+                'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_CRAFTY]],
+            self::SCORE_TYPE_UNDEFINED => ['class' => 'default', 'text' => '--',
+                'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_UNDEFINED]
         ]
             ];
     }
 
     /**
-     *
+     * Получает текст рекомендации исходя из общего балла
      */
     public function getRecommendation(){
 
@@ -893,6 +934,7 @@ class Test extends \yii\db\ActiveRecord
 
         return self::$recommendationsByScoreType[$score_type];
     }
+
     /**
      * Возвращает массив соответствий по итогам проверки вопросов на адекватность
      *
@@ -901,7 +943,8 @@ class Test extends \yii\db\ActiveRecord
     public static function getCheckAdequacyLabels()
     {
         return [
-            self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы с адекватностью'],
+            self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок',
+                'title' => self::$recommendationsByAdequacyCheck[self::STATUS_CHECK_GROUP_TRUE]],
             self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'адекватность',
                 'title' => self::$recommendationsByAdequacyCheck[self::STATUS_CHECK_GROUP_FALSE]],
         ];
@@ -915,9 +958,9 @@ class Test extends \yii\db\ActiveRecord
      */
     public static function getCheckHealthLabels()
     {
-
         return [
-            self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы со здоровьем'],
+            self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок',
+                'title' => self::$recommendationsByHealthCheck[self::STATUS_CHECK_GROUP_TRUE]],
             self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'здороввье',
                 'title' => self::$recommendationsByHealthCheck[self::STATUS_CHECK_GROUP_FALSE]],
         ];
@@ -968,14 +1011,12 @@ class Test extends \yii\db\ActiveRecord
     public function getUserStatusText(){
 
         return TestUser::$userStatusText[$this->userStatus];
-
     }
 
     /**
      * Возвращает массив соответствий кнопок пеерключения видимости групп вопросов (на бэкенде)
      */
     public static function getBackendControlButtonLabels(){
-
 
         return [
 
@@ -988,9 +1029,9 @@ class Test extends \yii\db\ActiveRecord
                 ],
                 'title' => [
 
-                    self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
-                    self::STATUS_CHECK_GROUP_FALSE => 'подозрение на ложь',
-                    self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на ложь',
+                    self::STATUS_CHECK_GROUP_UNDEFINED => self::$recommendationsByGroupCheck[self::CHECK_GROUP_1][self::STATUS_CHECK_GROUP_UNDEFINED],
+                    self::STATUS_CHECK_GROUP_FALSE =>  self::$recommendationsByGroupCheck[self::CHECK_GROUP_1][self::STATUS_CHECK_GROUP_FALSE],
+                    self::STATUS_CHECK_GROUP_TRUE =>  self::$recommendationsByGroupCheck[self::CHECK_GROUP_1][self::STATUS_CHECK_GROUP_TRUE],
                 ],
                 'group' =>  self::CHECK_GROUP_1
 
@@ -1005,9 +1046,9 @@ class Test extends \yii\db\ActiveRecord
                 ],
                 'title' => [
 
-                    self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
-                    self::STATUS_CHECK_GROUP_FALSE => 'подозрение на ложь',
-                    self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на ложь',
+                    self::STATUS_CHECK_GROUP_UNDEFINED => self::$recommendationsByGroupCheck[self::CHECK_GROUP_2][self::STATUS_CHECK_GROUP_UNDEFINED],
+                    self::STATUS_CHECK_GROUP_FALSE => self::$recommendationsByGroupCheck[self::CHECK_GROUP_2][self::STATUS_CHECK_GROUP_FALSE],
+                    self::STATUS_CHECK_GROUP_TRUE => self::$recommendationsByGroupCheck[self::CHECK_GROUP_2][self::STATUS_CHECK_GROUP_TRUE],
                 ],
                 'group' =>  self::CHECK_GROUP_2
 
@@ -1022,9 +1063,9 @@ class Test extends \yii\db\ActiveRecord
                 ],
                 'title' => [
 
-                    self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
-                    self::STATUS_CHECK_GROUP_FALSE => 'неадекватность',
-                    self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на неадекватность',
+                    self::STATUS_CHECK_GROUP_UNDEFINED =>  self::$recommendationsByGroupCheck[self::CHECK_GROUP_3][self::STATUS_CHECK_GROUP_UNDEFINED],
+                    self::STATUS_CHECK_GROUP_FALSE => self::$recommendationsByGroupCheck[self::CHECK_GROUP_3][self::STATUS_CHECK_GROUP_FALSE],
+                    self::STATUS_CHECK_GROUP_TRUE =>  self::$recommendationsByGroupCheck[self::CHECK_GROUP_3][self::STATUS_CHECK_GROUP_TRUE],
                 ],
                 'group' =>  self::CHECK_GROUP_3
 
