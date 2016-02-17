@@ -128,10 +128,9 @@ Aptitude.Backend.updateTest = function() {
                 test_id: $(this).data('id')
             },
 
-            function (data) {
-//                console.log(data);
+            function (response) {
                 var modal = $('#activity-modal');
-                modal.find('.modal-body').html(data);
+                modal.find('.modal-body').html(response);
                 modal.modal();
                 Aptitude.Backend.initModalState();
             }
@@ -165,7 +164,7 @@ Aptitude.Backend.processAddComment = function(){
 
     $(document).on("click", '#btn_add_comment', function (){
 
-        Aptitude.Backend.addComment();
+        Aptitude.Backend.addComment($(this));
 
     });
 
@@ -177,20 +176,20 @@ Aptitude.Backend.processUpdateUserStatus = function(){
 
     $(document).on("click", '#btn_update_status', function (){
 
-        Aptitude.Backend.updateUserStatus();
+        Aptitude.Backend.updateUserStatus($(this));
 
     });
 };
 /**
  * обновляет стаутс кандидата на сервере
  */
-Aptitude.Backend.updateUserStatus = function(){
+Aptitude.Backend.updateUserStatus = function(button){
 
     var data = Aptitude.Backend.getUserStatusData();
-   // console.log('status data:' + data);
+   var url =  button.data('url');
     $.ajax({
         type: "POST",
-        url: 'test/updateuserstatus',
+        url: url,
         data: data,
         success: function (response) {
             // рендерим следующий вопрос
@@ -278,13 +277,15 @@ Aptitude.Backend.getUserStatusData = function(){
 /**
  * Сохраняет комметарий к тесту
  */
-Aptitude.Backend.addComment = function(){
+Aptitude.Backend.addComment = function(button){
 
     var data = Aptitude.Backend.getCommentData();
+    var url =  button.data('url');
+    console.log('url: '+ url);
     console.log('comment data:' + data);
     $.ajax({
         type: "POST",
-        url: 'test/savecomment',
+        url: url,
         data: data,
         success: function (response) {
             // рендерим следующий вопрос

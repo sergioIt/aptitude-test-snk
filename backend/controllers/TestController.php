@@ -18,6 +18,11 @@ use common\models\TestResult;
 use common\models\TestSearch;
 use Yii;
 
+use Monolog\Logger;
+//use Monolog\Handler\SwiftMailerHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\ChromePHPHandler;
+
 class TestController extends Controller
 {
 
@@ -114,7 +119,7 @@ class TestController extends Controller
 
             if (isset($params['test_id'])) {
 
-            $test = Test::find(['id' => $params['test_id']])->one();
+                $test = Test::findOne(['id' => $params['test_id']]);
 
         } else {
                 $err = 'тест не найден';
@@ -154,7 +159,12 @@ class TestController extends Controller
                     echo 'saved';
                 }
             else{
-                var_dump($testComment->errors);
+
+                $logger = new Logger('aptitude-backend');
+
+                $logger->pushHandler(new StreamHandler(__DIR__ . '/../runtime/logs/critical.log', Logger::CRITICAL));
+                $logger->pushHandler(new ChromePHPHandler());
+                $logger->critical('test comment save fails', $testComment->errors);
             }
         }
         else{
@@ -185,6 +195,13 @@ class TestController extends Controller
                 echo $updated;
             }
             else{
+
+                $logger = new Logger('aptitude-backend');
+
+                $logger->pushHandler(new StreamHandler(__DIR__ . '/../runtime/logs/critical.log', Logger::CRITICAL));
+                $logger->pushHandler(new ChromePHPHandler());
+                $logger->critical('test user status update fails');
+
                 echo 'err';
             }
 

@@ -576,8 +576,6 @@ class Test extends \yii\db\ActiveRecord
             $logger->pushHandler(new ChromePHPHandler());
 
 /*            $transport = \Swift_SmtpTransport::newInstance('smtp.mandrillapp.com', 587);
-            $transport->setUsername('serge.kite@gmail.com');
-            $transport->setPassword('W9jA988GBNqoixL65_1IjA');
 
             $mailer = \Swift_Mailer::newInstance($transport);
 

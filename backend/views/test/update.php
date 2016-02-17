@@ -50,7 +50,10 @@ if (! empty($test->comments)) {
                 ['id'=>'btn_add_comment',
                     'data-test_id' => $test->id,
                     'data-user_id' => Yii::$app->getUser()->id,
-                    'class' => 'btn btn-success']); ?>
+                    'class' => 'btn btn-success',
+                    'data-url' => \yii::$app->getUrlManager()->createUrl('test/savecomment')
+
+                ]); ?>
 </div>
 
 
@@ -71,7 +74,11 @@ if (! empty($test->comments)) {
             ['id'=>'btn_update_status',
               //  'data-test_id' => $test->id,
                 'data-user_id' => $test->user->id,
-                'class' => 'btn btn-sm btn-success']); ?>
+                'class' => 'btn btn-sm btn-success',
+                'data-url' => \yii::$app->getUrlManager()->createUrl('test/updateuserstatus')
+            ]
+
+        ); ?>
 </div>
 
 </div>
