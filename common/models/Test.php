@@ -1027,7 +1027,12 @@ class Test extends \yii\db\ActiveRecord
             default:
                 $check = 0;
         }
-
+        // так приходится делать,потому что check_group_1 и т.р. по умолчанию null
+        // а должен быть 0
+        if($check == null)
+        {
+            return 0;
+        }
         return $check;
 
 
