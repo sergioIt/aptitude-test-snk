@@ -18,6 +18,8 @@ $(document).ready(function () {
 
     Aptitude.Backend.processUpdateBlocksToggle();
 
+    Aptitude.Backend.processViewBlocksToggle();
+
 
 
 });
@@ -32,6 +34,62 @@ Aptitude.Backend.processUpdateBlocksToggle = function(){
        $('#comments').toggle();
 
     });
+
+};
+/**
+ * обрабатывает переключение видимости грпп вопросов при просмотре отдельного теста
+ */
+Aptitude.Backend.processViewBlocksToggle = function(){
+
+    $(document).on("click", '.btn_show_group', function (){
+
+       var group = $(this).data('group');
+
+
+        Aptitude.Backend.hideAllResults();
+        Aptitude.Backend.showResultGroup(group);
+
+
+        console.log(group);
+
+
+    });
+
+    $(document).on("click", '#btn_show_all_results', function (){
+
+        Aptitude.Backend.showAllResults();
+
+    });
+
+
+
+
+};
+
+/**
+ * показывает группы проверочных вопросов и ответов
+ *
+ * @param group номер проверочной группы вопросов
+ */
+Aptitude.Backend.showResultGroup = function(group){
+
+    $(document).find('.result[data-check_group="'+group+'"]').show();
+
+};
+/**
+ * Скрывает все вопросы и ответы
+ */
+Aptitude.Backend.hideAllResults = function(){
+
+    $(document).find('.result').hide();
+};
+
+/**
+ * Показывает все вопросы и ответы
+ */
+Aptitude.Backend.showAllResults = function(){
+
+    $(document).find('.result').show();
 
 };
 

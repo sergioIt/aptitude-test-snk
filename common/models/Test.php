@@ -20,9 +20,6 @@ use Monolog\Handler\SwiftMailerHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\ChromePHPHandler;
 
-//use Swift_Mailer;
-
-//use Faker\Provider\DateTime;
 
 /**
  * This is the model class for table "test".
@@ -74,13 +71,17 @@ class Test extends \yii\db\ActiveRecord
     const LIMIT_UNWANTED_ANSWERS_CRITERIA_HEALTH = 2;
 
     /**
-     * статус итогоа проверки 1-ой группы вопросов: пройдена
+     * статус итогоа проверки группы вопросов: пройдена успешно
      */
     const STATUS_CHECK_GROUP_TRUE = 1;
     /**
-     * статус итогоа проверки 1-ой группы вопросов: подозрение на ложе
+     * статус итогоа проверки группы вопросов: подозрение на ложь
      */
     const STATUS_CHECK_GROUP_FALSE = 2;
+    /**
+     *  неопределённый статус проверки группы вопросов
+     */
+    const STATUS_CHECK_GROUP_UNDEFINED = 0;
 
     const MIN_POSSIBLE_SCORE = -76;
 
@@ -101,6 +102,12 @@ class Test extends \yii\db\ActiveRecord
     const SCORE_TYPE_UNDEFINED = 0;
     // временная зона для сохранения дат
     const TIMEZONE = 'Europe/Moscow';
+    // номер первой проверочной группы
+    const CHECK_GROUP_1 = 1;
+    // номер второй проверочной группы
+    const CHECK_GROUP_2 = 2;
+    //номер третьей проверочной группы
+    const CHECK_GROUP_3 = 3;
 
     /**
      * значение поля unwanted для ответа, который участвует в анализе на адекватность
@@ -145,6 +152,12 @@ class Test extends \yii\db\ActiveRecord
     ];
 
     /**
+     * Все проверочные группы
+     * @var array
+     */
+    private static $checkGroups = [ self::CHECK_GROUP_1, self::CHECK_GROUP_2,self::CHECK_GROUP_3 ];
+
+    /**
      * массив соответствий значения шкалы и оценки овтета
      * @var array
      */
@@ -176,8 +189,52 @@ class Test extends \yii\db\ActiveRecord
                 100 => 2,
             ]
     ];
+    /**
+     * Рекомендации в завимисмости от типа кандидата (тип вычисляется по общему кол-ву баллов)
+     *
+     * @var array
+     */
+    private static $recommendationsByScoreType = [
 
-    //private $durationCheck;
+        self::SCORE_TYPE_UNDEFINED => 'тип кандидата не определён, рекомендация по типа не определена (возможно, тест не закончен)',
+        self::SCORE_TYPE_BAD => 'отказать в рассмотрении данной кандидатуры на
+место',
+        self::SCORE_TYPE_DOUBTER => 'Данный кандидат, похоже, еще не
+совсем определился, нужна ему эта работа или нет. Рекомендация к более
+пристальному и внимательному разговору с данным кандидатом по телефону
+или во время очного интервью. Более внимательное отношение к деталям
+предстоящей работы, описание всех сложностей, с которыми придется
+столкнуться в процессе работы сварщиком. Несколько раз “в упор” спросить о
+готовности, поговорить об ответственности сторон и дать время подумать,
+взвесить решение”. При прочих равных условиях отдать предпочтение
+кандидату, набравшему больше баллов.',
+        self::SCORE_TYPE_INCLINED_TO_DOUBT => 'Кандидат скорее
+тяготеет к “сомневающемуся типу”, - соответственно, от него можно ожидатьизменения решения в ту или иную сторону в любой момент. Если есть
+возможность, отложите рассмотрение данной кандидатуры на время, не
+принимайте окончательное решение по нему. Рассмотрите более пристально
+кандидатов, набравших более 40 баллов',
+        self::SCORE_TYPE_GOOD => 'данные результаты прохождения теста говорят о
+желании и готовности данного кандидата работать в ЗАО “СНК” на должности
+сварщика термитной сварки',
+        self::SCORE_TYPE_CRAFTY => 'Внимание! Кандидат набрал максимальное количество баллов по тесту.
+        Стоит приглядеться к нему повнимательнее, возможно, что его хитрость проявится позднее и в других
+ситуациях в работе!',
+
+    ];
+    /**
+     *
+     * @var array
+     */
+    private $recommendationsByAdequacyCheck = [
+
+
+    ];
+
+    private $recommendationsByHealthCheck = [
+
+
+    ];
+
 
     /**
      * @inheritdoc
@@ -209,7 +266,7 @@ class Test extends \yii\db\ActiveRecord
             // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
             [['check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'in',
                 'range' => [self::STATUS_CHECK_GROUP_TRUE, self::STATUS_CHECK_GROUP_FALSE]],
-            ['score_type', 'integer']
+            ['score_type', 'integer', 'min'=>1]
 
         ];
     }
@@ -518,6 +575,21 @@ class Test extends \yii\db\ActiveRecord
             $logger->pushHandler(new StreamHandler(__DIR__.'/../../frontend/runtime/logs/critical.log', Logger::CRITICAL));
             $logger->pushHandler(new ChromePHPHandler());
 
+/*            $transport = \Swift_SmtpTransport::newInstance('smtp.mandrillapp.com', 587);
+            $transport->setUsername('serge.kite@gmail.com');
+            $transport->setPassword('W9jA988GBNqoixL65_1IjA');
+
+            $mailer = \Swift_Mailer::newInstance($transport);
+
+            $message = \Swift_Message::newInstance()
+                ->setSubject('critical_error')
+                ->setFrom(['serge.kite@gmail.com' => 'sergio'])
+                ->setTo(['serge.kite@gmail.com' => 'sergio'])
+                ->setBody('errors:'.var_export($test->errors,true),'text/html');
+
+            $logger->pushHandler(new SwiftMailerHandler($mailer,$message,Logger::CRITICAL));
+*/
+
             $logger->critical('test update fails',$test->errors);
         }
     }
@@ -759,36 +831,25 @@ class Test extends \yii\db\ActiveRecord
 
         return [
 
-            self::SCORE_TYPE_BAD => ['class' => 'danger', 'text' => 'не подходит', 'title' => 'Рекомендация: отказать в рассмотрении данной кандидатуры на
-место'],
-            self::SCORE_TYPE_DOUBTER => ['class' => 'warning', 'text' => 'сомневающийся', 'title' => 'Данный кандидат, похоже, еще не
-совсем определился, нужна ему эта работа или нет. Рекомендация к более
-пристальному и внимательному разговору с данным кандидатом по телефону
-или во время очного интервью. Более внимательное отношение к деталям
-предстоящей работы, описание всех сложностей, с которыми придется
-столкнуться в процессе работы сварщиком. Несколько раз “в упор” спросить о
-готовности, поговорить об ответственности сторон и дать время подумать,
-взвесить решение”. При прочих равных условиях отдать предпочтение
-кандидату, набравшему больше баллов.
-
-'],
-            self::SCORE_TYPE_INCLINED_TO_DOUBT => ['class' => 'warning', 'text' => 'скорее сомневающийся', 'title' => 'Рекомендация: Кандидат скорее
-тяготеет к “сомневающемуся типу”, - соответственно, от него можно ожидатьизменения решения в ту или иную сторону в любой момент. Если есть
-возможность, отложите рассмотрение данной кандидатуры на время, не
-принимайте окончательное решение по нему. Рассмотрите более пристально
-кандидатов, набравших более 40 баллов'],
-
-            self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит', 'title' => 'Рекомендация: данные результаты прохождения теста говорят о
-желании и готовности данного кандидата работать в ЗАО “СНК” на должности
-сварщика термитной сварки'],
-            self::SCORE_TYPE_CRAFTY=> ['class' => 'warning', 'text' => 'хитрый?', 'title' => 'Рекомендация: Внимание! Кандидат
-набрал максимальное количество баллов по тесту. Стоит приглядеться к нему повнимательнее, возможно, что его хитрость проявится позднее и в других
-ситуациях в работе!'],
-            self::SCORE_TYPE_UNDEFINED => ['class' => 'default', 'text' => '--', 'title' => 'проверка не проводилась'
+            self::SCORE_TYPE_BAD => ['class' => 'danger', 'text' => 'не подходит', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_BAD]],
+            self::SCORE_TYPE_DOUBTER => ['class' => 'warning', 'text' => 'сомневающийся', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_DOUBTER]],
+            self::SCORE_TYPE_INCLINED_TO_DOUBT => ['class' => 'warning', 'text' => 'скорее сомневающийся', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_INCLINED_TO_DOUBT]],
+            self::SCORE_TYPE_GOOD => ['class' => 'success', 'text' => 'подходит', 'title' =>  self::$recommendationsByScoreType[self::SCORE_TYPE_GOOD]],
+            self::SCORE_TYPE_CRAFTY=> ['class' => 'warning', 'text' => 'хитрый?', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_CRAFTY]],
+            self::SCORE_TYPE_UNDEFINED => ['class' => 'default', 'text' => '--', 'title' => self::$recommendationsByScoreType[self::SCORE_TYPE_UNDEFINED]
         ]
             ];
     }
 
+    /**
+     *
+     */
+    public function getRecommendation(){
+
+        $score_type = $this->getScoreTypeByScore($this->score);
+
+        return self::$recommendationsByScoreType[$score_type];
+    }
     /**
      * Возвращает массив соответствий по итогам проверки вопросов на адекватность
      *
@@ -847,16 +908,131 @@ class Test extends \yii\db\ActiveRecord
         return [
 
             TestUser::STATUS_DEFAULT =>
-                ['class' => 'default', 'text' => TestUser::STATUS_DEFAULT_NAME, 'title' => 'кандидат ещё не рассматривался'],
+                ['class' => 'default', 'text' => TestUser::STATUS_DEFAULT_NAME,
+                    'title' => TestUser::$userStatusText[TestUser::STATUS_DEFAULT]],
             TestUser::STATUS_UNDER_CONSIDERATION =>
-                ['class' => 'warning', 'text' => TestUser::STATUS_UNDER_CONSIDERATION_NAME, 'title' => 'кандидат находится  в стадии рассмотрения'],
+                ['class' => 'warning', 'text' => TestUser::STATUS_UNDER_CONSIDERATION_NAME,
+                    'title' => TestUser::$userStatusText[TestUser::STATUS_UNDER_CONSIDERATION]],
             TestUser::STATUS_ACCEPTED =>
-                ['class' => 'success', 'text' => TestUser::STATUS_ACCEPTED_NAME, 'title' => 'принятно решение принять кандидата на работу'],
+                ['class' => 'success', 'text' => TestUser::STATUS_ACCEPTED_NAME,
+                    'title' => TestUser::$userStatusText[TestUser::STATUS_ACCEPTED]],
             TestUser::STATUS_DECLINED =>
-                ['class' => 'danger', 'text' => TestUser::STATUS_DECLINED_NAME, 'title' => 'принятно решение отклонить кандидата'],
+                ['class' => 'danger', 'text' => TestUser::STATUS_DECLINED_NAME,
+                     'title' => TestUser::$userStatusText[TestUser::STATUS_DECLINED]],
 
         ];
     }
 
+    /**
+     * Получает текст, соответстсующий статусу кандадата
+     *
+     * @return mixed
+     */
+    public function getUserStatusText(){
+
+        return TestUser::$userStatusText[$this->userStatus];
+
+    }
+
+    /**
+     * Возвращает массив соответствий кнопок пеерключения видимости групп вопросов (на бэкенде)
+     */
+    public static function getBackendControlButtonLabels(){
+
+
+        return [
+
+            self::CHECK_GROUP_1 => ['text' => 'группа '.self::CHECK_GROUP_1,
+                'btn_class' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
+                    self::STATUS_CHECK_GROUP_FALSE => 'danger',
+                    self::STATUS_CHECK_GROUP_TRUE => 'success',
+                ],
+                'title' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+                    self::STATUS_CHECK_GROUP_FALSE => 'подозрение на ложь',
+                    self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на ложь',
+                ],
+                'group' =>  self::CHECK_GROUP_1
+
+            ],
+
+            self::CHECK_GROUP_2 => ['text' => 'группа '.self::CHECK_GROUP_2,
+                'btn_class' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
+                    self::STATUS_CHECK_GROUP_FALSE => 'danger',
+                    self::STATUS_CHECK_GROUP_TRUE => 'success',
+                ],
+                'title' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+                    self::STATUS_CHECK_GROUP_FALSE => 'подозрение на ложь',
+                    self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на ложь',
+                ],
+                'group' =>  self::CHECK_GROUP_2
+
+            ],
+
+            self::CHECK_GROUP_3 => ['text' => 'группа '.self::CHECK_GROUP_3,
+                'btn_class' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
+                    self::STATUS_CHECK_GROUP_FALSE => 'warning',
+                    self::STATUS_CHECK_GROUP_TRUE => 'success',
+                ],
+                'title' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+                    self::STATUS_CHECK_GROUP_FALSE => 'неадекватность',
+                    self::STATUS_CHECK_GROUP_TRUE => 'нет подозрений на неадекватность',
+                ],
+                'group' =>  self::CHECK_GROUP_3
+
+            ],
+
+
+        ];
+
+    }
+
+    /**
+     * получает номера проверочных групп
+     * @return array
+     */
+    public function getCheckGroupsResults(){
+
+        $check = [];
+
+        foreach(self::$checkGroups as $group){
+
+            $check[$group] = $this->getCheckByCheckGroup($group);
+
+        }
+        return $check;
+    }
+
+    private function getCheckByCheckGroup($group){
+
+        switch ($group) {
+            case self::CHECK_GROUP_1:
+                $check = $this->check_group_1;
+                break;
+            case self::CHECK_GROUP_2:
+                $check = $this->check_group_2;
+                break;
+            case self::CHECK_GROUP_3:
+                $check = $this->check_group_3;
+                break;
+            default:
+                $check = 0;
+        }
+
+        return $check;
+
+
+    }
 
 }

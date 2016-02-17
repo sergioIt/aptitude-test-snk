@@ -59,6 +59,11 @@ class TestController extends Controller
         );
     }
 
+    /**
+     * Просмотр отдельного теста
+     *
+     * @return bool|string
+     */
     public function actionView()
     {
 
@@ -84,9 +89,11 @@ class TestController extends Controller
             }
 
             return $this->renderAjax('result',
-                ['results' => $results,
+                [   'results' => $results,
                     'test' => $test,
                     'error' => $err,
+                    'controlButtons' => Test::getBackendControlButtonLabels(),
+                    'checkGroups' => $test->getCheckGroupsResults()
                 ]);
         } else {
             echo 'not ajax';
@@ -95,7 +102,7 @@ class TestController extends Controller
     }
 
     /**
-     * Вызывает модельное окно с данными теста, которые можно редактировать
+     * Вызывает модальное окно с данными теста, которые можно редактировать
      * (комментарий)
      */
     public function actionUpdate(){

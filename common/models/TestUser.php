@@ -72,6 +72,15 @@ class TestUser extends \yii\db\ActiveRecord
         return 'test_user';
     }
 
+    public static $userStatusText = [
+
+        self::STATUS_DEFAULT => 'кандидат ещё не рассматривался',
+        self::STATUS_UNDER_CONSIDERATION => 'кандидат находится  в стадии рассмотрения',
+        self::STATUS_ACCEPTED => 'принятно решение принять кандидата на работу',
+        self::STATUS_DECLINED =>'принятно решение отклонить кандидата',
+
+    ];
+
     /**
      * @inheritdoc
      */
