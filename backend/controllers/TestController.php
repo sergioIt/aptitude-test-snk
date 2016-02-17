@@ -98,7 +98,13 @@ class TestController extends Controller
                     'test' => $test,
                     'error' => $err,
                     'controlButtons' => Test::getBackendControlButtonLabels(),
-                    'checkGroups' => $test->getCheckGroupsResults()
+                    'checkGroups' => $test->getCheckGroupsResults(),
+                    'checkAdequacy' => $test->getCheckAdequacy(),
+                    'checkHealth' => $test->getCheckHealth(),
+                    'adequacyFailedCount' => $test->getAdequacyFailedCount(),
+                    'healthFailedCount' => $test->getHealthFailedCount(),
+
+
                 ]);
         } else {
             echo 'not ajax';

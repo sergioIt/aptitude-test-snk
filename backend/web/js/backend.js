@@ -12,16 +12,12 @@ $(document).ready(function () {
     Aptitude.Backend.viewResults();
     Aptitude.Backend.updateTest();
 
-
     Aptitude.Backend.processAddComment();
     Aptitude.Backend.processUpdateUserStatus();
 
     Aptitude.Backend.processUpdateBlocksToggle();
 
     Aptitude.Backend.processViewBlocksToggle();
-
-
-
 });
 
 /**
@@ -44,15 +40,21 @@ Aptitude.Backend.processViewBlocksToggle = function(){
     $(document).on("click", '.btn_show_group', function (){
 
        var group = $(this).data('group');
-
-
         Aptitude.Backend.hideAllResults();
         Aptitude.Backend.showResultGroup(group);
-
-
         console.log(group);
 
+    });
+    $(document).on("click", '.btn_show_adequacy', function () {
 
+        Aptitude.Backend.hideAllResults();
+        $(document).find('.result[data-check_adequacy="1"]').show();
+    });
+
+    $(document).on("click", '.btn_show_health', function () {
+
+        Aptitude.Backend.hideAllResults();
+        $(document).find('.result[data-check_health="1"]').show();
     });
 
     $(document).on("click", '#btn_show_all_results', function (){
@@ -60,10 +62,6 @@ Aptitude.Backend.processViewBlocksToggle = function(){
         Aptitude.Backend.showAllResults();
 
     });
-
-
-
-
 };
 
 /**

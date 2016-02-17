@@ -30,27 +30,32 @@ use backend\models\User;
 
     <div class="buttons">
     <?
-    /*    var_dump($checkGroups);*/
-
     foreach($checkGroups as $group=>$check){
 
         echo ' '.Html::button($controlButtons[$group]['text'],
             ['class'=> 'btn_show_group btn btn-'.$controlButtons[$group]['btn_class'][$check],
-                'id' => 'btn_show_check_group_1', 'title' =>$controlButtons[$group]['title'][$check],
+                //'id' => 'btn_show_check_group_1',
+                'title' =>$controlButtons[$group]['title'][$check],
                 'data-group' => $controlButtons[$group]['group']
             ]);
-    }
+    }?>
+
+    <?= Html::button(\common\models\Test::CHECK_GROUP_ADEQUACY_NAME.' ('.$adequacyFailedCount.')',
+        ['class'=> 'btn_show_adequacy btn btn_sm btn-'.$controlButtons[\common\models\Test::CHECK_GROUP_ADEQUACY]['btn_class'][$checkAdequacy],
+            'title' =>$controlButtons[\common\models\Test::CHECK_GROUP_ADEQUACY]['title'][$checkAdequacy],
+          ]);
     ?>
 
-    <?/*= Html::button('адекватность',['class'=> 'btn btn_sm btn-success', 'id' => 'btn_show_check_group_adequacy']); */?><!--
-    --><?/*= Html::button('здоровье',['class'=> 'btn btn_sm btn-success', 'id' => 'btn_show_check_group_health']); */?>
+    <?= Html::button(\common\models\Test::CHECK_GROUP_HEALTH_NAME.' ('.$healthFailedCount.')',
+        ['class'=> 'btn_show_health btn btn_sm btn-'.$controlButtons[\common\models\Test::CHECK_GROUP_HEALTH]['btn_class'][$checkHealth],
+            'title' =>$controlButtons[\common\models\Test::CHECK_GROUP_HEALTH]['title'][$checkHealth],
+          ]);
+    ?>
+
     <?= Html::button('показать все',['class'=> 'btn btn_sm btn-primary', 'id' => 'btn_show_all_results']); ?>
 
     </div>
-
-
 </div>
-
 
 <? if (isset($results)) {
     ?>
@@ -82,16 +87,34 @@ use backend\models\User;
     <div id="results_view">
     <? foreach ($results as $result){ ?>
 
-       <? $check_group = null;
+       <?
+        $check_group = null;
+        $check_adequacy = null;
+        $check_health = null;
+        $unwanted =  $result['answer']['unwanted'];
 
          if(isset($result['question']['check_group'])){
 
              $check_group = $result['question']['check_group'];
          }
+
+        if($unwanted == \common\models\Test::UNWANTED_ANSWER_TYPE_FOR_ADEQUACY){
+
+            $check_adequacy = 1;
+
+        }
+        if($unwanted == \common\models\Test::UNWANTED_ANSWER_TYPE_FOR_HEALTH){
+
+            $check_health = 1;
+        }
         ?>
 
-
-        <div id="question_<?=$result['question_id']?>" data-check_group="<?=$check_group?>" class="result">
+        <div id="question_<?=$result['question_id']?>"
+             data-check_group = "<?=$check_group?>"
+             data-check_adequacy = "<?= $check_adequacy ?>"
+             data-check_health = "<?= $check_health ?>"
+             class="result"
+            >
             <h2> Вопрос <?=$result['question_id'] ?>
             <? if(isset($result['question']['check_group'])){
 
@@ -102,7 +125,15 @@ use backend\models\User;
             </h2>
                 <h3> <?= $result['question']['text']; ?></h3>
 
-                <h2> Ответ: </h2>
+                <h2> Ответ:  <?  if(isset($result['answer']['unwanted'])){
+
+                        echo Html::tag('span',' ! ',
+                            ['class' => 'label label-sm label-danger',
+                                'title' => 'нежелательный ответ по группе вопросов на адекватность']);
+                    } ?>
+                    </h2>
+
+
         <h3>
         <? //если есть вариант ответа выводим его
         if(isset($result['answer']['text']) && $result['question']['multiple_answers'] == 0){
@@ -141,7 +172,3 @@ use backend\models\User;
 
 <?
 }
-?>
-
-
-

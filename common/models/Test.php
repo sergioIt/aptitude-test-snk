@@ -16,7 +16,7 @@ use backend\models\TestComment;
 use yii\data\ActiveDataProvider;
 
 use Monolog\Logger;
-use Monolog\Handler\SwiftMailerHandler;
+//use Monolog\Handler\SwiftMailerHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\ChromePHPHandler;
 
@@ -104,10 +104,19 @@ class Test extends \yii\db\ActiveRecord
     const TIMEZONE = 'Europe/Moscow';
     // номер первой проверочной группы
     const CHECK_GROUP_1 = 1;
+    const CHECK_GROUP_1_NAME = 'группа 1';
     // номер второй проверочной группы
     const CHECK_GROUP_2 = 2;
+    const CHECK_GROUP_2_NAME = 'группа 2';
     //номер третьей проверочной группы
     const CHECK_GROUP_3 = 3;
+    const CHECK_GROUP_3_NAME = 'группа 3';
+    // номер четвёртой проверочной группы (на нежелательные ответы)
+    const CHECK_GROUP_ADEQUACY = 4;
+    const CHECK_GROUP_ADEQUACY_NAME = 'адекватность';
+    // номер пятой проверочной группы (на нежелательные ответы)
+    const CHECK_GROUP_HEALTH = 5;
+    const CHECK_GROUP_HEALTH_NAME = 'здоровье';
 
     /**
      * значение поля unwanted для ответа, который участвует в анализе на адекватность
@@ -155,7 +164,11 @@ class Test extends \yii\db\ActiveRecord
      * Все проверочные группы
      * @var array
      */
-    private static $checkGroups = [ self::CHECK_GROUP_1, self::CHECK_GROUP_2,self::CHECK_GROUP_3 ];
+    private static $checkGroups = [
+        self::CHECK_GROUP_1,
+        self::CHECK_GROUP_2,
+        self::CHECK_GROUP_3,
+    ];
 
     /**
      * массив соответствий значения шкалы и оценки овтета
@@ -225,13 +238,27 @@ class Test extends \yii\db\ActiveRecord
      *
      * @var array
      */
-    private $recommendationsByAdequacyCheck = [
+    private static $recommendationsByAdequacyCheck = [
 
+        self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+        self::STATUS_CHECK_GROUP_TRUE => 'проверка на адекватность пройдена (не более 3 нежелательных ответов)',
+        self::STATUS_CHECK_GROUP_FALSE => 'Возможно, не следует всерьез рассматривать данного кандидата на
+должность сварщика термитной сварки. В противном случае у него стоит
+уточнить, сам ли он заполнял тест и насколько честно (не в шутку ли) выбирал
+тот или иной вариант ответа. А также снова рассказать ему о тех сложностях,
+что его ожидают и снова спросить о его готовности во всем этом участвовать',
 
     ];
 
-    private $recommendationsByHealthCheck = [
+    private static $recommendationsByHealthCheck = [
 
+        self::STATUS_CHECK_GROUP_UNDEFINED => 'проверка не проводилась',
+        self::STATUS_CHECK_GROUP_TRUE => 'проверка на адекватность пройдена (не более 3 нежелательных ответов)',
+        self::STATUS_CHECK_GROUP_FALSE => 'Внимание!
+Следует задать вопрос кандидату по его здоровью, уточнение информации по
+самочувствию во время переездов на любом виде транспорта. Рекомендуется
+индивидуальный разговор по предстоящим переездам при очном собеседовании
+или по телефону',
 
     ];
 
@@ -702,6 +729,24 @@ class Test extends \yii\db\ActiveRecord
     }
 
     /**
+     * Получает число нежелательнх ответов по адекватности
+     *
+     * @return int
+     */
+    public function getAdequacyFailedCount(){
+
+       return count($this->getUnwantedAnswers(self::UNWANTED_ANSWER_TYPE_FOR_ADEQUACY));
+    }
+
+    /**
+     *  Получает число нежелательнх ответов по здоровью
+     * @return int
+     */
+    public function getHealthFailedCount(){
+
+       return count($this->getUnwantedAnswers(self::UNWANTED_ANSWER_TYPE_FOR_HEALTH));
+    }
+    /**
      *  Проверяет колчество нежелательных ответов по типу "здоровье"
      */
     private function processCheckHealth()
@@ -857,11 +902,8 @@ class Test extends \yii\db\ActiveRecord
     {
         return [
             self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы с адекватностью'],
-            self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'адекватность', 'title' => 'Возможно, не следует всерьез рассматривать данного кандидата на
-должность сварщика термитной сварки. В противном случае у него стоит
-уточнить, сам ли он заполнял тест и насколько честно (не в шутку ли) выбирал
-тот или иной вариант ответа. А также снова рассказать ему о тех сложностях,
-что его ожидают и снова спросить о его готовности во всем этом участвовать'],
+            self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'адекватность',
+                'title' => self::$recommendationsByAdequacyCheck[self::STATUS_CHECK_GROUP_FALSE]],
         ];
 
     }
@@ -876,11 +918,8 @@ class Test extends \yii\db\ActiveRecord
 
         return [
             self::STATUS_CHECK_GROUP_TRUE => ['class' => 'primary', 'text' => 'ок', 'title' => 'нет подозрений на проблемы со здоровьем'],
-            self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'здороввье', 'title' => 'Внимание!
-Следует задать вопрос кандидату по его здоровью, уточнение информации по
-самочувствию во время переездов на любом виде транспорта. Рекомендуется
-индивидуальный разговор по предстоящим переездам при очном собеседовании
-или по телефону'],
+            self::STATUS_CHECK_GROUP_FALSE => ['class' => 'warning', 'text' => 'здороввье',
+                'title' => self::$recommendationsByHealthCheck[self::STATUS_CHECK_GROUP_FALSE]],
         ];
     }
 
@@ -940,7 +979,7 @@ class Test extends \yii\db\ActiveRecord
 
         return [
 
-            self::CHECK_GROUP_1 => ['text' => 'группа '.self::CHECK_GROUP_1,
+            self::CHECK_GROUP_1 => ['text' => self::CHECK_GROUP_1_NAME,
                 'btn_class' => [
 
                     self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
@@ -957,7 +996,7 @@ class Test extends \yii\db\ActiveRecord
 
             ],
 
-            self::CHECK_GROUP_2 => ['text' => 'группа '.self::CHECK_GROUP_2,
+            self::CHECK_GROUP_2 => ['text' => self::CHECK_GROUP_2_NAME,
                 'btn_class' => [
 
                     self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
@@ -974,7 +1013,7 @@ class Test extends \yii\db\ActiveRecord
 
             ],
 
-            self::CHECK_GROUP_3 => ['text' => 'группа '.self::CHECK_GROUP_3,
+            self::CHECK_GROUP_3 => ['text' => self::CHECK_GROUP_3_NAME,
                 'btn_class' => [
 
                     self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
@@ -991,13 +1030,45 @@ class Test extends \yii\db\ActiveRecord
 
             ],
 
+            self::CHECK_GROUP_ADEQUACY => ['text' => self::CHECK_GROUP_ADEQUACY_NAME,
+                'btn_class' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
+                    self::STATUS_CHECK_GROUP_FALSE => 'warning',
+                    self::STATUS_CHECK_GROUP_TRUE => 'success',
+                ],
+                'title' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => self::$recommendationsByAdequacyCheck[self::STATUS_CHECK_GROUP_UNDEFINED],
+                    self::STATUS_CHECK_GROUP_FALSE => self::$recommendationsByAdequacyCheck[self::STATUS_CHECK_GROUP_FALSE],
+                    self::STATUS_CHECK_GROUP_TRUE => self::$recommendationsByAdequacyCheck[self::STATUS_CHECK_GROUP_TRUE],
+                ],
+                'group' =>  self::CHECK_GROUP_ADEQUACY
+
+            ],
+        self::CHECK_GROUP_HEALTH => ['text' => self::CHECK_GROUP_HEALTH_NAME,
+                'btn_class' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => 'default',
+                    self::STATUS_CHECK_GROUP_FALSE => 'warning',
+                    self::STATUS_CHECK_GROUP_TRUE => 'success',
+                ],
+                'title' => [
+
+                    self::STATUS_CHECK_GROUP_UNDEFINED => self::$recommendationsByHealthCheck[self::STATUS_CHECK_GROUP_UNDEFINED],
+                    self::STATUS_CHECK_GROUP_FALSE => self::$recommendationsByHealthCheck[self::STATUS_CHECK_GROUP_FALSE],
+                    self::STATUS_CHECK_GROUP_TRUE => self::$recommendationsByHealthCheck[self::STATUS_CHECK_GROUP_TRUE],
+                ],
+                'group' =>  self::CHECK_GROUP_HEALTH
+
+            ],
 
         ];
 
     }
 
     /**
-     * получает номера проверочных групп
+     * получает результаты проверок по группам
      * @return array
      */
     public function getCheckGroupsResults(){
@@ -1034,7 +1105,26 @@ class Test extends \yii\db\ActiveRecord
             return 0;
         }
         return $check;
+    }
 
+    /**
+     * Получает оценку адекватности по нежелательным ответам
+     * @return int|mixed
+     */
+    public function getCheckAdequacy(){
+
+        if($this->check_adequacy == null){
+            return 0;
+        }
+        return $this->check_adequacy;
+
+    }
+
+    public function getCheckHealth(){
+        if($this->check_health == null){
+            return 0;
+        }
+        return $this->check_health;
 
     }
 
