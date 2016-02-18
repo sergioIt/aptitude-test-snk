@@ -316,7 +316,7 @@ class Test extends \yii\db\ActiveRecord
             // отметки о резульатах анализа по группам вопросов могут быть либо 1, либо 2
             [['check_group_1', 'check_group_2', 'check_group_3', 'check_adequacy', 'check_health'], 'in',
                 'range' => [self::STATUS_CHECK_GROUP_TRUE, self::STATUS_CHECK_GROUP_FALSE]],
-            ['score_type', 'integer', 'min'=>1]
+            ['score_type', 'integer']
 
         ];
     }
