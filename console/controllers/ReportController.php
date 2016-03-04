@@ -44,6 +44,7 @@ class ReportController extends Controller
                 ->setFrom(array('notify@zao-snk.ru' => 'SNK Notifier'))
                 ->setTo(array('serge.kite@gmail.com' => 'Sergio'))
                 ->setBody($this->composeMessage($recentTests))
+                ->setContentType('text/html')
                 ->setCharset('UTF-8');
 
             $result = $mailer->send($message);
@@ -74,7 +75,6 @@ class ReportController extends Controller
         return Test::find()->with('user')->where(['between', 'created', $from, $to])->asArray()->all();
     }
 
-
     /**
      * Компонует текст сообщения в письме-уведомлении
      *
@@ -83,24 +83,18 @@ class ReportController extends Controller
      */
     private function composeMessage($tests)
     {
-
         $message = '';
 
         $message .= $this->composeSubject();
 
-        $message .= 'Новые тесты:';
+        $message .= '<br> Новые тесты: <br>';
 
         foreach ($tests as $test) {
-
-            $testInfo = '';
-
             $testInfo = 'id: ' . $test['id'] . ' создан:' . $test['created'] . ' общий балл:' . $test['score'] . ' Имя: ' . $test['user']['name'];
 
             $message .= '<br>';
             $message .= $testInfo;
         }
-
-
         return $message;
     }
 
@@ -115,6 +109,6 @@ class ReportController extends Controller
 
         $yesterday = $now->modify('-1 day')->format('d.m.Y');
 
-        return 'Онлайн-тестирование. Отчёт за ' . $yesterday;
+        return 'Входное онлайн-тестирование. Отчёт за ' . $yesterday;
     }
 }
