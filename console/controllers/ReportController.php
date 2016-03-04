@@ -25,7 +25,6 @@ class ReportController extends Controller
         // выбор тестов за прошлые сутки
         $recentTests = $this->getRecentTests();
 
-
         // если есть тесты за прошлые сутки, то отправляем письмо-уведомление
         if (!empty ($recentTests)) {
 
@@ -41,9 +40,13 @@ class ReportController extends Controller
 
             // Create a message
             $message = \Swift_Message::newInstance($this->composeSubject())
-                ->setFrom(array('notify@zao-snk.ru' => 'SNK Notifier'))
-                ->setTo(array('serge.kite@gmail.com' => 'Sergio'))
-                ->setBody($this->composeMessage($recentTests))
+                ->setFrom(array( $notifier['from'] => 'SNK Notifier'));
+
+           foreach($notifier['destinations'] as $mail){
+
+                $message->setTo($mail);
+            }
+                $message->setBody($this->composeMessage($recentTests))
                 ->setContentType('text/html')
                 ->setCharset('UTF-8');
 
@@ -53,6 +56,10 @@ class ReportController extends Controller
 
                 echo 'send notify success';
             }
+            else{
+                echo 'send fail';
+            }
+
             return $result;
         }
 
