@@ -40,12 +40,14 @@ class ReportController extends Controller
 
             // Create a message
             $message = \Swift_Message::newInstance($this->composeSubject())
+
                 ->setFrom(array( $notifier['from'] => 'SNK Notifier'));
 
            foreach($notifier['destinations'] as $mail){
 
                 $message->setTo($mail);
             }
+
                 $message->setBody($this->composeMessage($recentTests))
                 ->setContentType('text/html')
                 ->setCharset('UTF-8');
