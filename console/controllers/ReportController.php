@@ -56,15 +56,16 @@ class ReportController extends Controller
 
             if($result == 1){
 
-                echo 'send notify success';
+                echo 'send notify success' . "\n" ;
+                return 0;
             }
             else{
-                echo 'send fail';
+                echo 'send fail' . "\n" ;
+                return 2;
             }
 
-            return $result;
         }
-
+        echo 'no recent results found '. "\n" ;
         return 1;
     }
 
